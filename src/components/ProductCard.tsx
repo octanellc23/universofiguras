@@ -25,7 +25,11 @@ export function ProductCard({ product }: { product: ProductView }) {
         <span className="card__title">{product.title}</span>
         <div className="card__foot">
           <span className="price">{formatCents(product.priceCents)}</span>
-          <StockBadge available={product.available} />
+          <StockBadge
+            available={product.available}
+            stock={product.stock}
+            reserved={product.reserved}
+          />
         </div>
       </div>
     </Link>

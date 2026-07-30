@@ -350,6 +350,13 @@ select {
   background: rgba(251, 191, 36, 0.1);
 }
 
+/* Apartada por una compra en curso: ni disponible ni agotada. */
+.badge--held {
+  color: #c4b5fd;
+  border-color: rgba(167, 139, 250, 0.32);
+  background: rgba(167, 139, 250, 0.12);
+}
+
 .badge--out {
   color: var(--text-faint);
   border-color: var(--border);
@@ -688,6 +695,30 @@ select {
 
 .option strong {
   font-weight: 650;
+}
+
+/* Seleccionable de verdad: si parece un botón, tiene que serlo. */
+.option--pick {
+  align-items: center;
+  gap: 11px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.option--pick:hover {
+  border-color: var(--border-strong);
+}
+
+.option--pick input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--accent);
+  flex-shrink: 0;
+}
+
+.option--on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .option small {

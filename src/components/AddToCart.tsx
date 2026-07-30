@@ -7,15 +7,35 @@ import { useCart } from '@/lib/client/cart';
 export function AddToCart({
   productId,
   available,
+  stock,
+  reserved,
 }: {
   productId: string;
   available: number;
+  stock: number;
+  reserved: number;
 }) {
   const { add } = useCart();
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
 
   if (available <= 0) {
+    // Apartada, no agotada: la compra de otra persona puede no completarse y
+    // la unidad vuelve sola. Vale mucho más decir esto que "Agotado".
+    if (stock > 0 && reserved > 0) {
+      return (
+        <div style={{ display: 'grid', gap: 8 }}>
+          <button className="btn btn--ghost btn--block" disabled>
+            Alguien la está comprando
+          </button>
+          <span style={{ color: 'var(--text-faint)', fontSize: 13 }}>
+            Es la última unidad y hay una compra en curso. Si no se completa, vuelve a estar
+            disponible en unos 30 minutos.
+          </span>
+        </div>
+      );
+    }
+
     return (
       <button className="btn btn--ghost btn--block" disabled>
         Agotado

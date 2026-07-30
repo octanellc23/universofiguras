@@ -76,10 +76,19 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
           <div className="buybox__price">{formatCents(product.priceCents)}</div>
           <div style={{ marginBottom: 18 }}>
-            <StockBadge available={product.available} />
+            <StockBadge
+              available={product.available}
+              stock={product.stock}
+              reserved={product.reserved}
+            />
           </div>
 
-          <AddToCart productId={product.id} available={product.available} />
+          <AddToCart
+            productId={product.id}
+            available={product.available}
+            stock={product.stock}
+            reserved={product.reserved}
+          />
 
           <div className="divider" />
 

@@ -64,7 +64,11 @@ export const createCheckout = onCall(
     // El país ya viene elegido desde nuestro sitio porque Stripe no nos deja
     // recalcular el envío cuando el comprador escribe su dirección (I7).
     const options = buildShippingOptions(items, country, shippingConfig);
-    const delivery = options[0];
+
+    // El navegador solo puede decir CUÁL de las opciones eligió, nunca cuánto
+    // cuesta (I1). Si manda una que no calculamos nosotros, se ignora.
+    const requestedId = readShippingOptionId(request.data);
+    const delivery = options.find((option) => option.id === requestedId) ?? options[0];
 
     const subtotal = subtotalCents(items);
     const projectedTotal = subtotal + delivery.amountCents;
@@ -167,9 +171,9 @@ export const createCheckout = onCall(
             // dentro, pagaría un envío que no corresponde (I7).
             allowed_countries: [country as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry],
           },
-          shipping_options: options.map((option) =>
-            toShippingOption(option, shippingConfig.shippingTaxCode, taxEnabled)
-          ),
+          // Solo la opción que el comprador ya eligió en el carrito. Mandar
+          // varias haría que el total de Stripe pudiera diferir del que vio.
+          shipping_options: [toShippingOption(delivery, shippingConfig.shippingTaxCode, taxEnabled)],
           // DHL exige teléfono para despachar internacional.
           phone_number_collection: { enabled: delivery.method === 'international' },
           expires_at: Math.floor(expiresAtMs / 1000),
@@ -212,6 +216,11 @@ export const createCheckout = onCall(
     }
   }
 );
+
+function readShippingOptionId(raw: unknown): string | null {
+  const value = (raw as { shippingOptionId?: unknown } | undefined)?.shippingOptionId;
+  return typeof value === 'string' ? value : null;
+}
 
 function readEmail(raw: unknown): string | null {
   const value = (raw as { email?: unknown } | undefined)?.email;

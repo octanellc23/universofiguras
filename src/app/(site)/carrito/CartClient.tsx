@@ -19,6 +19,7 @@ export function CartClient({ countries }: { countries: CountryOption[] }) {
   const { lines, ready, setQty, remove, clear } = useCart();
   const [country, setCountry] = useState('US');
   const [quote, setQuote] = useState<CartQuoteView | null>(null);
+  const [optionId, setOptionId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [paying, setPaying] = useState(false);
@@ -42,6 +43,13 @@ export function CartClient({ countries }: { countries: CountryOption[] }) {
         if (cancelled) return;
         setQuote(result);
         setError(null);
+        // Si cambió el país, la opción elegida puede ya no existir (el
+        // recogido en persona desaparece fuera de EE. UU.).
+        setOptionId((current) =>
+          current && result.options.some((option) => option.id === current)
+            ? current
+            : (result.options[0]?.id ?? null)
+        );
       })
       .catch((err: unknown) => {
         if (cancelled) return;
@@ -75,10 +83,10 @@ export function CartClient({ countries }: { countries: CountryOption[] }) {
     );
   }
 
-  const delivery = quote?.options.find((option) => option.method !== 'pickup') ?? null;
-  const pickup = quote?.options.find((option) => option.method === 'pickup') ?? null;
+  const selected =
+    quote?.options.find((option) => option.id === optionId) ?? quote?.options[0] ?? null;
   const totalCents =
-    quote && delivery && !error ? quote.subtotalCents + delivery.amountCents : null;
+    quote && selected && !error ? quote.subtotalCents + selected.amountCents : null;
 
   return (
     <div className="cart">
@@ -181,31 +189,42 @@ export function CartClient({ countries }: { countries: CountryOption[] }) {
           Lo pedimos antes de pagar para calcular el envío exacto.
         </p>
 
-        {delivery && !error && (
-          <div className="option-list">
-            <div className="option">
-              <div>
-                <strong>{delivery.label}</strong>
-                {delivery.deliveryDays && (
-                  <small>
-                    {delivery.deliveryDays.min}–{delivery.deliveryDays.max} días hábiles
-                  </small>
-                )}
-              </div>
-              <span>
-                {delivery.amountCents === 0 ? 'Gratis' : formatCents(delivery.amountCents)}
-              </span>
+        {quote && !error && quote.options.length > 0 && (
+          <>
+            <span className="field__label">Cómo lo quieres recibir</span>
+            <div className="option-list">
+              {quote.options.map((option) => (
+                <label
+                  key={option.id}
+                  className={`option option--pick${
+                    selected?.id === option.id ? ' option--on' : ''
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="envio"
+                    value={option.id}
+                    checked={selected?.id === option.id}
+                    onChange={() => setOptionId(option.id)}
+                  />
+                  <div style={{ flex: 1 }}>
+                    <strong>{option.label}</strong>
+                    {option.deliveryDays && (
+                      <small>
+                        {option.deliveryDays.min}–{option.deliveryDays.max} días hábiles
+                      </small>
+                    )}
+                    {option.method === 'pickup' && (
+                      <small>Coordinamos el punto de encuentro por correo.</small>
+                    )}
+                  </div>
+                  <span>
+                    {option.amountCents === 0 ? 'Gratis' : formatCents(option.amountCents)}
+                  </span>
+                </label>
+              ))}
             </div>
-            {pickup && (
-              <div className="option">
-                <div>
-                  <strong>{pickup.label}</strong>
-                  <small>Podrás elegirlo al pagar</small>
-                </div>
-                <span>Gratis</span>
-              </div>
-            )}
-          </div>
+          </>
         )}
 
         {quote && !error && (
@@ -215,9 +234,9 @@ export function CartClient({ countries }: { countries: CountryOption[] }) {
               <span>{formatCents(quote.subtotalCents)}</span>
             </div>
             <div className="summary__row">
-              <span>Envío</span>
+              <span>{selected?.method === 'pickup' ? 'Recogido' : 'Envío'}</span>
               <span>
-                {delivery?.amountCents === 0 ? 'Gratis' : formatCents(delivery?.amountCents ?? 0)}
+                {selected?.amountCents === 0 ? 'Gratis' : formatCents(selected?.amountCents ?? 0)}
               </span>
             </div>
             <div className="summary__row">
@@ -241,9 +260,15 @@ export function CartClient({ countries }: { countries: CountryOption[] }) {
             setError(null);
             try {
               const session = await callFunction<
-                { items: typeof lines; country: string },
+                { items: typeof lines; country: string; shippingOptionId: string | null },
                 { url: string }
-              >('createCheckout', { items: lines, country });
+              >('createCheckout', {
+                items: lines,
+                country,
+                // Solo el identificador: el precio de esa opción lo vuelve a
+                // calcular el servidor (I1).
+                shippingOptionId: selected?.id ?? null,
+              });
               window.location.href = session.url;
             } catch (err: unknown) {
               setError(messageOf(err));

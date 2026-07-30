@@ -18,6 +18,8 @@ interface RawProduct {
   priceCents: number;
   compareAtPriceCents: number | null;
   available: number;
+  stock: number;
+  reserved: number;
   inStock: boolean;
   shipping: {
     tier: ProductView['tier'];
@@ -46,6 +48,8 @@ function toView(id: string, raw: RawProduct): ProductView {
     priceCents: raw.priceCents,
     compareAtPriceCents: raw.compareAtPriceCents ?? null,
     available: raw.available,
+    stock: raw.stock ?? 0,
+    reserved: raw.reserved ?? 0,
     inStock: raw.inStock,
     tier: raw.shipping.tier,
     weightGrams: raw.shipping.weightGrams,

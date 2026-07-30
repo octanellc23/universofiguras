@@ -14,6 +14,10 @@ export interface ProductView {
   priceCents: number;
   compareAtPriceCents: number | null;
   available: number;
+  // stock y reserved se exponen para poder distinguir "no queda ninguna" de
+  // "hay una, pero alguien la está comprando ahora".
+  stock: number;
+  reserved: number;
   inStock: boolean;
   tier: ShippingTier;
   weightGrams: number;
