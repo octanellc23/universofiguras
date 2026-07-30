@@ -1,0 +1,52 @@
+# dependencias
+node_modules/
+.pnp
+.pnp.js
+
+# build
+lib/
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+
+# secretos — NUNCA versionar. Los secretos reales van en Secret Manager
+# via defineSecret; esto es solo la red de seguridad.
+.env
+.env.*
+!.env.example
+# functions/.env solo tiene parámetros públicos (SITE_URL) y hace falta al
+# desplegar: se versiona a propósito.
+!functions/.env
+# defineSecret lee de aquí al correr con los emuladores: es una clave de
+# Stripe en texto plano.
+.secret.local
+*.secret.local
+*.local
+*serviceAccount*.json
+*service-account*.json
+*-firebase-adminsdk-*.json
+
+# firebase
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+firestore-debug.log
+database-debug.log
+pubsub-debug.log
+ui-debug.log
+.runtimeconfig.json
+
+# emuladores (datos exportados)
+emulator-data/
+
+# sistema / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# tests
+coverage/

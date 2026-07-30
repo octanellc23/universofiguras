@@ -1,0 +1,50 @@
+# Firebase App Hosting — backend del sitio Next.js (App Router, SSR sobre Cloud Run).
+# NO es Hosting clásico: no hay carpeta "public" que se suba, se construye y se
+# corre el servidor de Next.
+
+runConfig:
+  # SUBIR A 1 ANTES DEL PRIMER VIDEO. Una instancia siempre encendida cuesta
+  # unos dólares al mes y evita el arranque en frío justo cuando entran 200
+  # personas de golpe; mientras no haya tráfico real, es dinero quemado.
+  minInstances: 0
+  maxInstances: 10
+  concurrency: 80
+  cpu: 1
+  memoryMiB: 512
+
+env:
+  # Claves públicas de Firebase: van al bundle del navegador, no son secretos.
+  # La apiKey identifica al proyecto, no autoriza nada: quien protege los datos
+  # son firestore.rules y storage.rules.
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: AIzaSyCuZFWWCNwqK6qpGCIYSHusZS5UIFtlUik
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: universo-figuras.firebaseapp.com
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: universo-figuras
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: universo-figuras.firebasestorage.app
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: '673790347693'
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: '1:673790347693:web:7ca3a2da01f1cc394c7924'
+    availability: [BUILD, RUNTIME]
+  # Analytics: getAnalytics() toca window y revienta en el render del servidor.
+  # Cuando llegue el frontend, se carga solo en cliente y tras isSupported().
+  - variable: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+    value: G-G39WD99RBS
+    availability: [BUILD, RUNTIME]
+
+  # La publishable key de Stripe también es pública por diseño.
+  - variable: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+    value: REEMPLAZAR
+    availability: [BUILD, RUNTIME]
+
+  # Los secretos de Stripe NO se declaran aquí: viven en las Cloud Functions
+  # via defineSecret. El sitio nunca ve la secret key. Si algún día el frontend
+  # necesitara un secreto, sería con `secret:` y disponibilidad solo RUNTIME.

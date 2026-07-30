@@ -1,0 +1,25 @@
+{
+  "name": "universo-figuras",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tienda de figuras de acción coleccionables con blog integrado",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "firebase": "^12.16.0",
+    "firebase-admin": "^13.10.0",
+    "next": "^15.5.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.9.0"
+  }
+}

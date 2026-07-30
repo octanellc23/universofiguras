@@ -1,0 +1,45 @@
+rules_version = '2';
+
+// Universo Figuras — reglas de Cloud Storage
+//
+// Las imágenes de producto y del blog son públicas por definición (son la
+// vitrina). Todo lo demás está cerrado.
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
+    // 10 MB: una foto de producto salida del celular pesa 3-5 MB. Si algo
+    // supera esto, es un video o un error, y en ninguno de los dos casos
+    // queremos pagar el almacenamiento.
+    function isImageUnder10MB() {
+      return request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/(jpeg|png|webp|avif)');
+    }
+
+    match /products/{productId}/{fileName} {
+      allow read: if true;
+      allow write: if isAdmin() && isImageUnder10MB();
+      allow delete: if isAdmin();
+    }
+
+    match /posts/{postId}/{fileName} {
+      allow read: if true;
+      allow write: if isAdmin() && isImageUnder10MB();
+      allow delete: if isAdmin();
+    }
+
+    // Fotos del empaque antes de despachar: son la prueba en una disputa por
+    // "llegó dañado" o "la caja estaba vacía". No son públicas.
+    match /fulfillment/{orderId}/{fileName} {
+      allow read, write, delete: if isAdmin();
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

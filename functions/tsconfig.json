@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    // node16 (no "commonjs"/"node"): respeta los campos "exports" de los
+    // paquetes y no está deprecado. Como package.json no declara
+    // "type": "module", node16 sigue emitiendo CommonJS, que es lo que
+    // espera el runtime de Cloud Functions.
+    "module": "node16",
+    "moduleResolution": "node16",
+    "target": "es2022",
+    "lib": ["es2023"],
+    "outDir": "lib",
+    "rootDir": "src",
+    "sourceMap": true,
+    "declaration": false,
+
+    // Estricto de verdad. Un `any` colado en el cálculo de precios es un
+    // error de dinero que nadie ve hasta el cierre de mes.
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "lib"]
+}
