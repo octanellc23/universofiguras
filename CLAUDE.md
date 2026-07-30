@@ -400,8 +400,35 @@ Proyecto `universo-figuras`, plan Blaze. Cuenta del CLI: `edgardoj2305@gmail.com
 | Reglas, 13 índices, TTL de `stripeEvents` | desplegado |
 | 5 funciones, Node 22, 2ª gen, `us-east1` | desplegado |
 | `config/*` y 2 productos demo | sembrados (`npm run seed`) |
-| Frontend Next.js (tienda, ficha, carrito, blog, confirmación) | funcionando en `npm run dev` |
+| Frontend Next.js (tienda, ficha, carrito, blog, confirmación) | desplegado |
+| Panel `/admin` (figuras, inventario, pedidos, despacho) | desplegado |
 | Barrido programado | corre cada 5 min, verificado en los logs |
+| App Hosting backend `universofiguras` (`us-east4`) | desplegado |
+| Repositorio | `github.com/octanellc23/universofiguras` (privado) |
+| Dominio `universofiguras.com` | **pendiente de conectar** |
+
+URL provisional: `https://universofiguras--universo-figuras.us-east4.hosted.app`
+
+**El despliegue del sitio va desde el código local, no desde GitHub.** El
+backend se creó sin repositorio conectado, y `firebase.json` tiene el bloque
+`apphosting` que habilita la subida local:
+
+```bash
+firebase deploy --only apphosting
+```
+
+Un push a `main` NO despliega nada. Si algún día se conecta el repositorio en
+la consola, eso cambia y cada push pasa a ser un despliegue a producción.
+
+**Dos trampas ya pisadas, para no repetirlas:**
+
+- El asistente de la consola **sobrescribe `apphosting.yaml`** con una
+  plantilla vacía. Si el carrito o el login dejan de funcionar en producción
+  con un error de Firebase sin configurar, revisa que el bloque `env` siga ahí.
+- En `.gitignore`, un patrón como `lib/` **sin barra inicial** coincide con
+  cualquier carpeta a cualquier profundidad. Se llevó `src/lib/` entero y nada
+  avisó hasta que el build en la nube falló con "Module not found". Los
+  patrones de salida de build van anclados a la raíz.
 | Webhook URL | `https://us-east1-universo-figuras.cloudfunctions.net/stripeWebhook` |
 | Endpoint registrado en Stripe + `whsec` real | **pendiente** |
 | Dirección fiscal y registro de CT en Stripe Tax | **pendiente** — sin la dirección, `automatic_tax` rechaza toda sesión; sin el registro, cobra $0 en silencio |
