@@ -24,6 +24,8 @@ export default async function PanelLayout({ children }: { children: React.ReactN
             <Link href="/admin/productos">Figuras</Link>
             <Link href="/admin/blog">Reseñas</Link>
             <Link href="/admin/pedidos">Pedidos</Link>
+            <Link href="/admin/tienda">La tienda</Link>
+            <Link href="/admin/envios">Envíos</Link>
             <Link href="/" target="_blank">
               Ver la tienda ↗
             </Link>

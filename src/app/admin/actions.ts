@@ -4,6 +4,7 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { revalidatePath } from 'next/cache';
 import { adminDb } from '@/lib/server/admin';
 import { readAdminSession } from '@/lib/server/auth';
+import { dollarsToCents } from '@/lib/money';
 import { inchesToMm, poundsToGrams } from '@/lib/units';
 
 export interface SaveProductInput {
@@ -40,15 +41,6 @@ export interface SaveProductInput {
 }
 
 export type SaveResult = { ok: true; id: string } | { ok: false; error: string };
-
-/** "49.99" → 4999. Entero, siempre (I2). */
-function toCents(value: string): number | null {
-  const clean = value.replace(/[^0-9.,]/g, '').replace(',', '.');
-  const amount = Number.parseFloat(clean);
-  if (!Number.isFinite(amount) || amount < 0) return null;
-  // El *100 de un float da 4998.999...; el redondeo es obligatorio, no cosmético.
-  return Math.round(amount * 100);
-}
 
 /** Acepta el link completo de YouTube o el ID pelado. */
 function extractVideoId(input: string): string | null {
@@ -93,6 +85,195 @@ function splitList(value: string): string[] {
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+export interface SaveShippingInput {
+  standard: { label: string; base: string; additional: string; daysMin: number; daysMax: number };
+  large: { label: string; base: string; additional: string; daysMin: number; daysMax: number };
+  heavy: { label: string; base: string; additional: string; daysMin: number; daysMax: number };
+  freeEnabled: boolean;
+  freeThreshold: string;
+  internationalEnabled: boolean;
+  bands: Array<{
+    id: string;
+    label: string;
+    standardBase: string;
+    standardAdditional: string;
+    largeBase: string;
+    largeAdditional: string;
+    daysMin: number;
+    daysMax: number;
+  }>;
+  pickupEnabled: boolean;
+  pickupFee: string;
+  pickupLabel: string;
+  pickupInstructions: string;
+}
+
+/**
+ * Las tarifas de envío. USPS sube precios en enero y julio y el dueño tiene
+ * que poder ajustarlas sin desplegar nada (I10).
+ *
+ * Cada guardado sube `version`, que se copia a cada pedido. Así, cuando las
+ * tarifas cambien, sigue siendo posible auditar qué número se le cobró a quién.
+ */
+export async function saveShipping(input: SaveShippingInput): Promise<SaveResult> {
+  const session = await readAdminSession();
+  if (!session) return { ok: false, error: 'Tu sesión venció. Vuelve a entrar.' };
+
+  const errores: string[] = [];
+  const cents = (valor: string, campo: string): number => {
+    const c = dollarsToCents(valor);
+    if (c === null) {
+      errores.push(campo);
+      return 0;
+    }
+    return c;
+  };
+
+  const ref = adminDb.collection('config').doc('shipping');
+  const actual = await ref.get();
+  if (!actual.exists) return { ok: false, error: 'No encontramos la configuración de envíos.' };
+
+  const previo = actual.data() ?? {};
+  const tiersPrevios = (previo.domestic?.tiers ?? {}) as Record<string, Record<string, unknown>>;
+
+  const tier = (
+    t: SaveShippingInput['standard'],
+    clave: string,
+    nombre: string
+  ): Record<string, unknown> => ({
+    // carrier y service no se editan en el formulario, pero se conservan: son
+    // la documentación de qué servicio real hay detrás de cada tarifa.
+    ...(tiersPrevios[clave] ?? {}),
+    label: t.label.trim() || nombre,
+    baseCents: cents(t.base, `base de ${nombre}`),
+    additionalItemCents: cents(t.additional, `artículo extra de ${nombre}`),
+    deliveryDays: {
+      min: Math.max(0, Math.round(t.daysMin)),
+      max: Math.max(0, Math.round(t.daysMax)),
+    },
+  });
+  const bandsPrevias = (previo.international?.bands ?? {}) as Record<
+    string,
+    { countries?: string[]; tiers?: Record<string, unknown> }
+  >;
+
+  const tiersDomesticos = {
+    standard: tier(input.standard, 'standard', 'estándar'),
+    large: tier(input.large, 'large', 'caja grande'),
+    heavy: tier(input.heavy, 'heavy', 'pesado'),
+  };
+
+  const bands: Record<string, unknown> = {};
+  for (const banda of input.bands) {
+    const anterior = bandsPrevias[banda.id];
+    if (!anterior) continue;
+    bands[banda.id] = {
+      label: banda.label.trim(),
+      // Los países de cada banda NO se editan aquí: cambiarlos afecta a qué
+      // países se puede vender, que es una decisión de negocio, no una tarifa.
+      countries: anterior.countries ?? [],
+      tiers: {
+        standard: {
+          baseCents: cents(banda.standardBase, `base estándar de ${banda.label}`),
+          additionalItemCents: cents(banda.standardAdditional, `extra estándar de ${banda.label}`),
+        },
+        large: {
+          baseCents: cents(banda.largeBase, `base grande de ${banda.label}`),
+          additionalItemCents: cents(banda.largeAdditional, `extra grande de ${banda.label}`),
+        },
+      },
+      deliveryDays: {
+        min: Math.max(0, Math.round(banda.daysMin)),
+        max: Math.max(0, Math.round(banda.daysMax)),
+      },
+    };
+  }
+
+  const freeThreshold = cents(input.freeThreshold, 'umbral de envío gratis');
+  const pickupFee = cents(input.pickupFee, 'costo del recogido');
+
+  if (errores.length > 0) {
+    return { ok: false, error: `Hay valores que no son números válidos: ${errores.join(', ')}.` };
+  }
+
+  await ref.update({
+    version: (previo.version ?? 1) + 1,
+    'domestic.tiers': tiersDomesticos,
+    'domestic.freeShipping.enabled': input.freeEnabled,
+    'domestic.freeShipping.thresholdCents': freeThreshold,
+    'international.enabled': input.internationalEnabled,
+    'international.bands': bands,
+    'localPickup.enabled': input.pickupEnabled,
+    'localPickup.feeCents': pickupFee,
+    'localPickup.label': input.pickupLabel.trim() || 'Recogido en persona',
+    'localPickup.instructions': input.pickupInstructions.trim(),
+    updatedAt: FieldValue.serverTimestamp(),
+    updatedBy: session.uid,
+  });
+
+  revalidatePath('/', 'layout');
+  revalidatePath('/carrito');
+
+  return { ok: true, id: 'shipping' };
+}
+
+export interface SaveStoreInput {
+  storeName: string;
+  supportEmail: string;
+  youtubeChannelUrl: string;
+  instagram: string;
+  tiktok: string;
+  x: string;
+  about: string;
+  returns: string;
+  shipping: string;
+}
+
+/** Los textos del sitio. Se guardan tal cual se escriben, sin formato oculto. */
+export async function saveStore(input: SaveStoreInput): Promise<SaveResult> {
+  const session = await readAdminSession();
+  if (!session) return { ok: false, error: 'Tu sesión venció. Vuelve a entrar.' };
+
+  const email = input.supportEmail.trim().toLowerCase();
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return { ok: false, error: 'Ese correo de contacto no parece válido.' };
+  }
+
+  const url = (valor: string): string | null => {
+    const limpio = valor.trim();
+    if (!limpio) return null;
+    return /^https?:\/\//i.test(limpio) ? limpio : `https://${limpio}`;
+  };
+
+  await adminDb
+    .collection('config')
+    .doc('store')
+    .set(
+      {
+        storeName: input.storeName.trim() || 'Universo Figuras',
+        supportEmail: email,
+        youtubeChannelUrl: url(input.youtubeChannelUrl) ?? '',
+        social: {
+          instagram: url(input.instagram),
+          tiktok: url(input.tiktok),
+          x: url(input.x),
+        },
+        about: input.about.trim(),
+        policies: {
+          returnsMarkdown: input.returns.trim(),
+          shippingMarkdown: input.shipping.trim(),
+        },
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+
+  // Estos textos salen en el pie de TODAS las páginas, no solo en las suyas.
+  revalidatePath('/', 'layout');
+
+  return { ok: true, id: 'store' };
 }
 
 export interface SavePostInput {
@@ -240,7 +421,7 @@ export async function saveProduct(input: SaveProductInput): Promise<SaveResult> 
   const title = input.title.trim();
   if (!title) return { ok: false, error: 'La figura necesita un título.' };
 
-  const priceCents = toCents(input.price);
+  const priceCents = dollarsToCents(input.price);
   if (priceCents === null) return { ok: false, error: 'El precio no es un número válido.' };
   if (priceCents === 0) return { ok: false, error: 'El precio no puede ser $0.' };
 
