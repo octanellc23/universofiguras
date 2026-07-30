@@ -273,7 +273,11 @@ select {
 .card__media img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  /* contain, no cover: la caja es parte de lo que se vende y recortarla
+     esconde justo lo que el coleccionista quiere ver. Preferimos que sobre
+     fondo a que falte producto. */
+  object-fit: contain;
+  padding: 10px;
 }
 
 .card__placeholder {
@@ -390,7 +394,9 @@ select {
 }
 
 .product__media {
-  aspect-ratio: 4 / 3;
+  /* Cuadrado y no 4/3: las fotos de figuras en caja son verticales, y un
+     marco apaisado las obliga a encogerse hasta perder el detalle. */
+  aspect-ratio: 1 / 1;
   border-radius: var(--radius);
   border: 1px solid var(--border);
   background: linear-gradient(150deg, #241f2e 0%, #14121a 60%);
@@ -402,7 +408,8 @@ select {
 .product__media img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  padding: 18px;
 }
 
 .buybox {
@@ -574,7 +581,8 @@ select {
 .cart__thumb img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  padding: 4px;
 }
 
 .stepper {
@@ -1074,7 +1082,8 @@ textarea.select {
 .table__thumb img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  padding: 3px;
 }
 
 .table__link {
