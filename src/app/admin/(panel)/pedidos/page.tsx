@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { formatCents } from '@/lib/money';
 import { listOrders } from '@/lib/server/admin-catalog';
 
@@ -52,7 +53,9 @@ export default async function PedidosPage() {
               {orders.map((order) => (
                 <tr key={order.id}>
                   <td>
-                    <span className="table__link">{order.number}</span>
+                    <Link href={`/admin/pedidos/${order.id}`} className="table__link">
+                      {order.number}
+                    </Link>
                     {order.manualReview && (
                       <div className="table__sub" style={{ color: 'var(--warning)' }}>
                         Revisar a mano
@@ -85,9 +88,6 @@ export default async function PedidosPage() {
         </div>
       )}
 
-      <p className="panel__hint" style={{ marginTop: 20 }}>
-        Marcar como enviado y pegar el tracking es lo siguiente que falta aquí.
-      </p>
     </>
   );
 }

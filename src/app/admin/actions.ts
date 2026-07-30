@@ -92,6 +92,55 @@ function splitList(value: string): string[] {
     .filter(Boolean);
 }
 
+/**
+ * Enlaces de rastreo por transportista. El comprador quiere hacer clic, no
+ * copiar un número y buscar en qué página pegarlo.
+ */
+const TRACKING_URL: Record<string, (n: string) => string> = {
+  USPS: (n) => `https://tools.usps.com/go/TrackConfirmAction?tLabels=${encodeURIComponent(n)}`,
+  UPS: (n) => `https://www.ups.com/track?tracknum=${encodeURIComponent(n)}`,
+  DHL: (n) => `https://www.dhl.com/us-en/home/tracking.html?tracking-id=${encodeURIComponent(n)}`,
+};
+
+export type ShipResult = { ok: true } | { ok: false; error: string };
+
+export async function markShipped(input: {
+  orderId: string;
+  carrier: string;
+  trackingNumber: string;
+}): Promise<ShipResult> {
+  const session = await readAdminSession();
+  if (!session) return { ok: false, error: 'Tu sesión venció. Vuelve a entrar.' };
+
+  const trackingNumber = input.trackingNumber.trim().replace(/\s+/g, '');
+  if (!trackingNumber) return { ok: false, error: 'Falta el número de rastreo.' };
+
+  const ref = adminDb.collection('orders').doc(input.orderId);
+  const snap = await ref.get();
+  if (!snap.exists) return { ok: false, error: 'Ese pedido no existe.' };
+
+  const status = snap.get('status');
+  // Despachar algo que no se pagó es regalar una figura.
+  if (status !== 'paid' && status !== 'fulfilled') {
+    return { ok: false, error: 'Este pedido todavía no está pagado.' };
+  }
+
+  const carrier = TRACKING_URL[input.carrier] ? input.carrier : 'USPS';
+
+  await ref.update({
+    status: 'fulfilled',
+    'fulfillment.carrier': carrier,
+    'fulfillment.trackingNumber': trackingNumber,
+    'fulfillment.trackingUrl': TRACKING_URL[carrier](trackingNumber),
+    'fulfillment.shippedAt': FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+
+  revalidatePath('/admin/pedidos');
+  revalidatePath(`/admin/pedidos/${input.orderId}`);
+  return { ok: true };
+}
+
 export async function saveProduct(input: SaveProductInput): Promise<SaveResult> {
   const session = await readAdminSession();
   if (!session) return { ok: false, error: 'Tu sesión venció. Vuelve a entrar.' };
