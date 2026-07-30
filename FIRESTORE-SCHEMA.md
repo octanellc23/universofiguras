@@ -10,7 +10,7 @@ existe para sostener.
 |---|---|
 | Dinero | Siempre entero, siempre centavos, siempre sufijo `Cents` (I2). Moneda única: `usd`. |
 | Fechas | `Timestamp` de Firestore. Nunca strings ISO, nunca hora del cliente. |
-| Peso / medidas | `weightGrams` entero; dimensiones en **milímetros** enteros (I12). |
+| Peso / medidas | `weightGrams` entero; dimensiones en **milímetros** enteros (I12). El panel los captura en **libras y pulgadas**, que es lo que marcan la balanza y la cinta del dueño; la conversión vive en `src/lib/units.ts` y no en la base. |
 | Países | ISO 3166-1 alpha-2 en mayúsculas (`US`, `MX`, `CR`). |
 | IDs de documento | Auto-ID de Firestore, salvo donde se indica lo contrario. |
 | Campos derivados | Marcados 🔒 — los escribe **solo el Admin SDK** dentro de una transacción. Las reglas prohíben tocarlos desde el navegador, incluso al admin. |

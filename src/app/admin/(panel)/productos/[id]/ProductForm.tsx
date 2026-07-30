@@ -43,10 +43,10 @@ export function ProductForm({ product }: { product: AdminProductDetail | null })
     featured: product?.featured ?? false,
     stock: product?.stock ?? 1,
     tier: product?.tier ?? 'standard',
-    weightGrams: product?.weightGrams ?? 0,
-    length: product?.dimsMm.length ?? 0,
-    width: product?.dimsMm.width ?? 0,
-    height: product?.dimsMm.height ?? 0,
+    weightLb: product?.weightLb ? String(product.weightLb) : '',
+    length: product?.dimsIn.length ? String(product.dimsIn.length) : '',
+    width: product?.dimsIn.width ? String(product.dimsIn.width) : '',
+    height: product?.dimsIn.height ? String(product.dimsIn.height) : '',
     freeShippingEligible: product?.freeShippingEligible ?? true,
     localPickupEligible: product?.localPickupEligible ?? true,
     internationalEligible: product?.internationalEligible ?? true,
@@ -133,8 +133,8 @@ export function ProductForm({ product }: { product: AdminProductDetail | null })
       featured: form.featured,
       stock: Number(form.stock),
       tier: form.tier,
-      weightGrams: Number(form.weightGrams),
-      dimsMm: {
+      weightLb: Number(form.weightLb),
+      dimsIn: {
         length: Number(form.length),
         width: Number(form.width),
         height: Number(form.height),
@@ -420,43 +420,51 @@ export function ProductForm({ product }: { product: AdminProductDetail | null })
             </label>
 
             <label className="field">
-              <span className="field__label">Peso en gramos *</span>
+              <span className="field__label">Peso en libras *</span>
               <input
                 type="number"
-                min={1}
+                min={0.01}
+                step={0.1}
                 className="select"
-                value={form.weightGrams}
-                onChange={(event) => set('weightGrams', Number(event.target.value))}
+                value={form.weightLb}
+                onChange={(event) => set('weightLb', event.target.value)}
+                placeholder="2.5"
                 required
               />
+              <small className="field__hint">
+                Con la caja y el relleno, tal como sale al correo.
+              </small>
             </label>
 
-            <span className="field__label">Medidas de la caja en mm *</span>
+            <span className="field__label">Medidas de la caja en pulgadas *</span>
             <div className="field-row field-row--three">
               <input
                 type="number"
-                min={1}
+                min={0.1}
+                step={0.5}
                 className="select"
                 value={form.length}
-                onChange={(event) => set('length', Number(event.target.value))}
+                onChange={(event) => set('length', event.target.value)}
                 placeholder="Largo"
                 required
               />
               <input
                 type="number"
-                min={1}
+                min={0.1}
+                step={0.5}
                 className="select"
                 value={form.width}
-                onChange={(event) => set('width', Number(event.target.value))}
+                onChange={(event) => set('width', event.target.value)}
                 placeholder="Ancho"
                 required
               />
               <input
                 type="number"
-                min={1}
+                min={0.1}
+                step={0.5}
                 className="select"
                 value={form.height}
-                onChange={(event) => set('height', Number(event.target.value))}
+                onChange={(event) => set('height', event.target.value)}
                 placeholder="Alto"
                 required
               />

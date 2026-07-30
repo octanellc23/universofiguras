@@ -4,6 +4,7 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { revalidatePath } from 'next/cache';
 import { adminDb } from '@/lib/server/admin';
 import { readAdminSession } from '@/lib/server/auth';
+import { inchesToMm, poundsToGrams } from '@/lib/units';
 
 export interface SaveProductInput {
   id: string;
@@ -21,8 +22,10 @@ export interface SaveProductInput {
   featured: boolean;
   stock: number; // solo se usa al crear
   tier: string;
-  weightGrams: number;
-  dimsMm: { length: number; width: number; height: number };
+  // El formulario habla en libras y pulgadas; la conversión a gramos y
+  // milímetros ocurre aquí, al guardar.
+  weightLb: number;
+  dimsIn: { length: number; width: number; height: number };
   freeShippingEligible: boolean;
   localPickupEligible: boolean;
   internationalEligible: boolean;
@@ -155,10 +158,10 @@ export async function saveProduct(input: SaveProductInput): Promise<SaveResult> 
   // Peso y medidas son obligatorios aunque hoy la tarifa sea plana (I12):
   // medir 200 cajas hacia atrás el día que integremos tarifas reales es un
   // infierno.
-  if (!input.weightGrams || input.weightGrams <= 0) {
-    return { ok: false, error: 'Falta el peso en gramos.' };
+  if (!Number.isFinite(input.weightLb) || input.weightLb <= 0) {
+    return { ok: false, error: 'Falta el peso en libras.' };
   }
-  const { length, width, height } = input.dimsMm;
+  const { length, width, height } = input.dimsIn;
   if (!length || !width || !height) {
     return { ok: false, error: 'Faltan las medidas de la caja (largo, ancho y alto).' };
   }
@@ -195,11 +198,11 @@ export async function saveProduct(input: SaveProductInput): Promise<SaveResult> 
     tags: splitList(input.tags),
     shipping: {
       tier,
-      weightGrams: Math.round(input.weightGrams),
+      weightGrams: poundsToGrams(input.weightLb),
       dimsMm: {
-        length: Math.round(length),
-        width: Math.round(width),
-        height: Math.round(height),
+        length: inchesToMm(length),
+        width: inchesToMm(width),
+        height: inchesToMm(height),
       },
       // Un artículo pesado no sale del país, marque lo que marque la casilla.
       internationalEligible: tier === 'heavy' ? false : input.internationalEligible,

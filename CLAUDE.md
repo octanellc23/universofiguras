@@ -161,6 +161,12 @@ de producto**, aunque hoy usemos tarifa plana. El día que integremos Shippo o
 EasyPost para tarifas reales, medir 200 cajas hacia atrás es un infierno. Se
 capturan desde el día uno.
 
+El panel los pide en **libras y pulgadas** —lo que marcan la balanza y la cinta
+del dueño— y los guarda en gramos y milímetros enteros. Un solo sistema
+canónico en la base, igual que el dinero en centavos; la conversión vive en
+`src/lib/units.ts`, que es la única frontera. No repartas conversiones por el
+código.
+
 ### 3.5 Transacciones
 
 **I13 — En toda transacción de Firestore: TODAS las lecturas antes de TODAS las

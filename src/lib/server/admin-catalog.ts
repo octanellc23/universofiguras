@@ -1,4 +1,5 @@
 import { adminDb } from './admin';
+import { gramsToPounds, mmToInches } from '../units';
 
 /** Vista de producto para el panel: incluye borradores y archivados. */
 export interface AdminProductRow {
@@ -160,8 +161,9 @@ export interface AdminProductDetail {
   reserved: number;
   available: number;
   tier: string;
-  weightGrams: number;
-  dimsMm: { length: number; width: number; height: number };
+  // Ya convertidos para el formulario: el dueño mide en libras y pulgadas.
+  weightLb: number;
+  dimsIn: { length: number; width: number; height: number };
   freeShippingEligible: boolean;
   localPickupEligible: boolean;
   internationalEligible: boolean;
@@ -199,8 +201,12 @@ export async function getProductForEdit(id: string): Promise<AdminProductDetail 
     reserved: data.reserved ?? 0,
     available: data.available ?? 0,
     tier: data.shipping?.tier ?? 'standard',
-    weightGrams: data.shipping?.weightGrams ?? 0,
-    dimsMm: data.shipping?.dimsMm ?? { length: 0, width: 0, height: 0 },
+    weightLb: gramsToPounds(data.shipping?.weightGrams ?? 0),
+    dimsIn: {
+      length: mmToInches(data.shipping?.dimsMm?.length ?? 0),
+      width: mmToInches(data.shipping?.dimsMm?.width ?? 0),
+      height: mmToInches(data.shipping?.dimsMm?.height ?? 0),
+    },
     freeShippingEligible: data.shipping?.freeShippingEligible ?? true,
     localPickupEligible: data.shipping?.localPickupEligible ?? true,
     internationalEligible: data.shipping?.internationalEligible ?? true,
