@@ -10,11 +10,14 @@ const config: NextConfig = {
       { protocol: 'https', hostname: 'i.ytimg.com' },
     ],
   },
-  // functions/ tiene su propio package.json y su propio tsconfig; no es parte
-  // del build del sitio.
-  outputFileTracingExcludes: {
-    '*': ['./functions/**/*'],
-  },
+  // NO añadir outputFileTracingExcludes con patrones como './functions/**/*':
+  // Next aplica esos globs contra TODOS los archivos rastreados, incluidos los
+  // de node_modules, y excluye cualquier dependencia que tenga una carpeta con
+  // ese nombre. Rompió el sitio en producción con "Cannot find module
+  // './functions/parse'" mientras en local todo compilaba.
+  //
+  // La carpeta functions/ del repositorio no necesita exclusión: nadie la
+  // importa desde la app, así que el rastreo no la toca.
 };
 
 export default config;
