@@ -109,19 +109,7 @@ export function CartClient({ countries }: { countries: CountryOption[] }) {
                   Solo quedan {item.available}
                 </div>
               )}
-              <button
-                type="button"
-                onClick={() => remove(item.productId)}
-                style={{
-                  background: 'none',
-                  border: 0,
-                  padding: 0,
-                  marginTop: 6,
-                  color: 'var(--text-faint)',
-                  fontSize: 13,
-                  textDecoration: 'underline',
-                }}
-              >
+              <button type="button" className="link-btn" onClick={() => remove(item.productId)}>
                 Quitar
               </button>
             </div>

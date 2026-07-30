@@ -735,6 +735,23 @@ select {
   font-size: 12px;
 }
 
+/* Botón con aspecto de enlace. El área táctil se agranda con padding, no con
+   tamaño de letra: se ve discreto pero se puede tocar con el pulgar. */
+.link-btn {
+  background: none;
+  border: 0;
+  padding: 6px 0;
+  margin-top: 2px;
+  color: var(--text-faint);
+  font-size: 13px;
+  text-decoration: underline;
+  min-height: 32px;
+}
+
+.link-btn:hover {
+  color: var(--danger);
+}
+
 /* ---------- avisos ---------- */
 
 .notice {
@@ -828,6 +845,180 @@ select {
   color: var(--text);
   font-size: 19px;
   margin: 32px 0 12px;
+}
+
+/* ============ teléfonos ============
+ *
+ * El encabezado en una sola fila no cabe en 375 px: logo + navegación +
+ * carrito suman más que la pantalla y empujan TODA la página hacia los lados.
+ * Se parte en dos filas —marca y carrito arriba, navegación abajo— antes que
+ * achicar la letra hasta volverla ilegible.
+ */
+
+@media (max-width: 620px) {
+  .shell {
+    padding: 0 16px;
+  }
+
+  .site-header {
+    height: auto;
+  }
+
+  .site-header__inner {
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    padding: 10px 0;
+  }
+
+  .logo {
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    margin-right: auto;
+  }
+
+  .nav {
+    order: 3;
+    width: 100%;
+    gap: 20px;
+    font-size: 14px;
+    padding-top: 2px;
+  }
+
+  .cart-link {
+    padding: 7px 14px;
+    font-size: 13.5px;
+  }
+
+  .hero {
+    padding: 48px 0 40px;
+  }
+
+  .hero h1 {
+    max-width: none;
+  }
+
+  .hero p {
+    font-size: 16.5px;
+  }
+
+  .section {
+    padding: 44px 0 0;
+  }
+
+  .section__head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  /* Dos columnas de fichas en un teléfono dejan la foto del tamaño de un
+     sello. Una sola, grande, que es lo que se mira antes de comprar. */
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .product {
+    padding: 28px 0 0;
+  }
+
+  /* Pegajoso en un teléfono significa un bloque que persigue al usuario y le
+     come media pantalla. */
+  .buybox,
+  .summary {
+    position: static;
+  }
+
+  .buybox h1 {
+    font-size: 22px;
+  }
+
+  .buybox__price {
+    font-size: 30px;
+  }
+
+  /* Miniatura más chica y la cantidad debajo, no apretada al costado. */
+  .cart__line {
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .cart__line > div:last-child {
+    grid-column: 2;
+    flex-direction: row;
+    justify-items: start;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .cart__thumb {
+    width: 64px;
+  }
+
+  /* Dos campos por fila obliga a escribir en cuadros de 140 px. */
+  .field-row {
+    grid-template-columns: 1fr;
+  }
+
+  /* Largo, ancho y alto sí caben: son números de dos dígitos. */
+  .field-row--three {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+
+  /* 32 px se falla con el dedo. 42 es lo mínimo cómodo para el − y el +,
+     que son los botones que más se tocan en toda la tienda. */
+  .stepper button {
+    width: 42px;
+    height: 42px;
+    font-size: 19px;
+  }
+
+  .stepper span {
+    min-width: 38px;
+    font-size: 15px;
+  }
+
+  .confirm {
+    padding: 44px 0 0;
+  }
+
+  .site-footer {
+    margin-top: 64px;
+    padding: 32px 0 48px;
+  }
+
+  /* Panel: el correo del admin no cabe y no aporta nada en un teléfono. */
+  .admin-bar {
+    height: auto;
+  }
+
+  .admin-bar__inner {
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    padding: 10px 0;
+  }
+
+  .admin-bar__user {
+    display: none;
+  }
+
+  .admin-nav {
+    order: 3;
+    width: 100%;
+    gap: 18px;
+  }
+
+  .admin-head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .admin-head .btn {
+    width: 100%;
+  }
 }
 
 /* ============ panel de admin ============ */
