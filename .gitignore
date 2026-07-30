@@ -4,11 +4,15 @@ node_modules/
 .pnp.js
 
 # build
-lib/
+# OJO con los patrones sin barra inicial: "lib/" coincide con CUALQUIER carpeta
+# llamada lib a cualquier profundidad, y se llevó src/lib/ entero — la mitad de
+# la aplicación quedó fuera del repositorio sin que nada avisara, hasta que el
+# build en la nube falló con "Module not found". Anclados desde la raíz.
+/functions/lib/
 .next/
-out/
-build/
-dist/
+/out/
+/build/
+/dist/
 *.tsbuildinfo
 
 # secretos — NUNCA versionar. Los secretos reales van en Secret Manager
