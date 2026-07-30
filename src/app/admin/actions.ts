@@ -95,6 +95,95 @@ function splitList(value: string): string[] {
     .filter(Boolean);
 }
 
+export interface SavePostInput {
+  id: string;
+  isNew: boolean;
+  title: string;
+  slug: string;
+  excerpt: string;
+  body: string;
+  status: string;
+  videoUrl: string;
+  productIds: string[];
+  tags: string;
+  cover: { url: string; alt: string; storagePath: string; width: number; height: number } | null;
+}
+
+export async function savePost(input: SavePostInput): Promise<SaveResult> {
+  const session = await readAdminSession();
+  if (!session) return { ok: false, error: 'Tu sesión venció. Vuelve a entrar.' };
+
+  const title = input.title.trim();
+  if (!title) return { ok: false, error: 'La entrada necesita un título.' };
+
+  const body = input.body.trim();
+  if (!body) return { ok: false, error: 'La entrada está vacía.' };
+
+  const slug = slugify(input.slug || title);
+  if (!slug) return { ok: false, error: 'No pudimos generar la dirección web de la entrada.' };
+
+  const clash = await adminDb.collection('posts').where('slug', '==', slug).limit(2).get();
+  if (clash.docs.some((doc) => doc.id !== input.id)) {
+    return { ok: false, error: `Ya existe otra entrada con la dirección "${slug}".` };
+  }
+
+  const videoId = extractVideoId(input.videoUrl);
+  if (input.videoUrl.trim() && !videoId) {
+    return { ok: false, error: 'Ese link de YouTube no se entiende. Pega la dirección completa.' };
+  }
+
+  // Se calcula, no se pregunta: nadie sabe cuántos minutos dura su propio
+  // texto, y 200 palabras por minuto es el promedio de lectura.
+  const words = body.split(/\s+/).filter(Boolean).length;
+  const readingMinutes = Math.max(1, Math.round(words / 200));
+
+  const excerpt = input.excerpt.trim() || `${body.slice(0, 155).trim()}…`;
+
+  const common = {
+    slug,
+    title,
+    excerpt,
+    body,
+    coverImage: input.cover,
+    videoId,
+    // La razón de ser del blog: la entrada enlaza a las figuras de las que
+    // habla, y la ficha se vuelve el cierre de esa lectura.
+    productIds: input.productIds,
+    tags: splitList(input.tags),
+    status: input.status,
+    seo: { title: null, description: excerpt.slice(0, 155), ogImage: input.cover?.url ?? null },
+    readingMinutes,
+    authorUid: session.uid,
+    updatedAt: FieldValue.serverTimestamp(),
+  };
+
+  const ref = adminDb.collection('posts').doc(input.id);
+
+  if (input.isNew) {
+    await ref.create({
+      ...common,
+      createdAt: FieldValue.serverTimestamp(),
+      publishedAt: input.status === 'published' ? FieldValue.serverTimestamp() : null,
+    });
+  } else {
+    const current = await ref.get();
+    if (!current.exists) return { ok: false, error: 'Esa entrada ya no existe.' };
+    await ref.update({
+      ...common,
+      publishedAt:
+        input.status === 'published' && !current.get('publishedAt')
+          ? FieldValue.serverTimestamp()
+          : (current.get('publishedAt') ?? null),
+    });
+  }
+
+  revalidatePath('/admin/blog');
+  revalidatePath('/blog');
+  revalidatePath(`/blog/${slug}`);
+
+  return { ok: true, id: input.id };
+}
+
 /**
  * Enlaces de rastreo por transportista. El comprador quiere hacer clic, no
  * copiar un número y buscar en qué página pegarlo.

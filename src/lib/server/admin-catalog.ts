@@ -37,6 +37,65 @@ export async function listAllProducts(): Promise<AdminProductRow[]> {
   });
 }
 
+export interface AdminPostRow {
+  id: string;
+  slug: string;
+  title: string;
+  status: string;
+  hasVideo: boolean;
+  productCount: number;
+  updatedAt: number | null;
+}
+
+export async function listAllPosts(): Promise<AdminPostRow[]> {
+  const snap = await adminDb.collection('posts').orderBy('updatedAt', 'desc').limit(100).get();
+
+  return snap.docs.map((doc) => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      slug: data.slug ?? '',
+      title: data.title ?? '(sin título)',
+      status: data.status ?? 'draft',
+      hasVideo: Boolean(data.videoId),
+      productCount: (data.productIds ?? []).length,
+      updatedAt: data.updatedAt?.toMillis?.() ?? null,
+    };
+  });
+}
+
+export interface AdminPostDetail {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  body: string;
+  status: string;
+  videoId: string;
+  productIds: string[];
+  tags: string;
+  cover: { url: string; alt: string; storagePath: string; width: number; height: number } | null;
+}
+
+export async function getPostForEdit(id: string): Promise<AdminPostDetail | null> {
+  const snap = await adminDb.collection('posts').doc(id).get();
+  if (!snap.exists) return null;
+  const data = snap.data() ?? {};
+
+  return {
+    id: snap.id,
+    slug: data.slug ?? '',
+    title: data.title ?? '',
+    excerpt: data.excerpt ?? '',
+    body: data.body ?? '',
+    status: data.status ?? 'draft',
+    videoId: data.videoId ?? '',
+    productIds: data.productIds ?? [],
+    tags: (data.tags ?? []).join(', '),
+    cover: data.coverImage ?? null,
+  };
+}
+
 export interface AdminOrderRow {
   id: string;
   number: string;

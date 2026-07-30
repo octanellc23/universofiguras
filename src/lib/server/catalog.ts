@@ -32,6 +32,7 @@ interface RawProduct {
   videoId: string | null;
   videoSnapshot: { title: string; startSeconds: number | null } | null;
   images: Array<{ url: string; alt: string }>;
+  status: string;
 }
 
 function toView(id: string, raw: RawProduct): ProductView {
@@ -73,6 +74,22 @@ export async function listActiveProducts(max = 24): Promise<ProductView[]> {
     .get();
 
   return snap.docs.map((doc) => toView(doc.id, doc.data() as RawProduct));
+}
+
+/**
+ * Las figuras de las que habla una reseña. Se filtran las que no estén
+ * publicadas: si el dueño archivó una, la entrada del blog sigue viva pero deja
+ * de ofrecer algo que no se puede comprar.
+ */
+export async function getProductsByIds(ids: string[]): Promise<ProductView[]> {
+  if (ids.length === 0) return [];
+
+  const refs = ids.slice(0, 10).map((id) => adminDb.collection('products').doc(id));
+  const snaps = await adminDb.getAll(...refs);
+
+  return snaps
+    .filter((snap) => snap.exists && (snap.data() as RawProduct).status === 'active')
+    .map((snap) => toView(snap.id, snap.data() as RawProduct));
 }
 
 export async function getProductBySlug(slug: string): Promise<ProductView | null> {

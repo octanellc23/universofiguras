@@ -22,6 +22,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
 
           <nav className="admin-nav">
             <Link href="/admin/productos">Figuras</Link>
+            <Link href="/admin/blog">Reseñas</Link>
             <Link href="/admin/pedidos">Pedidos</Link>
             <Link href="/" target="_blank">
               Ver la tienda ↗

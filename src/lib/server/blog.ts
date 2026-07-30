@@ -8,6 +8,7 @@ export interface PostView {
   body: string;
   coverUrl: string | null;
   videoId: string | null;
+  productIds: string[];
   readingMinutes: number;
   publishedAt: number | null;
 }
@@ -19,6 +20,7 @@ interface RawPost {
   body: string;
   coverImage: { url: string } | null;
   videoId: string | null;
+  productIds: string[] | null;
   readingMinutes: number;
   publishedAt: { toMillis(): number } | null;
 }
@@ -32,6 +34,7 @@ function toView(id: string, raw: RawPost): PostView {
     body: raw.body ?? '',
     coverUrl: raw.coverImage?.url ?? null,
     videoId: raw.videoId ?? null,
+    productIds: raw.productIds ?? [],
     readingMinutes: raw.readingMinutes ?? 3,
     // Los Timestamp de Firestore no cruzan la frontera servidor→cliente.
     publishedAt: raw.publishedAt ? raw.publishedAt.toMillis() : null,
