@@ -152,17 +152,32 @@ export function ProductForm({ product }: { product: AdminProductDetail | null })
       images,
     };
 
-    const result = await saveProduct(input);
-    setSaving(false);
+    try {
+      const result = await saveProduct(input);
 
-    if (!result.ok) {
-      setError(result.error);
-      return;
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+
+      setSaved(true);
+      if (isNew) router.replace(`/admin/productos/${id}`);
+      router.refresh();
+    } catch (err: unknown) {
+      // Next identifica cada server action con un hash del build. Si el sitio
+      // se redesplegó mientras esta pestaña estaba abierta, el identificador
+      // que manda el navegador ya no existe y la llamada falla. Sin este
+      // catch, el botón se quedaba en "Guardando…" para siempre.
+      const message = err instanceof Error ? err.message : '';
+      setError(
+        message.includes('Server Action') || message.includes('Failed to fetch')
+          ? 'El sitio se actualizó mientras llenabas el formulario. Recarga la página con F5 y vuelve a guardar — las fotos que subiste no se pierden.'
+          : 'No pudimos guardar. Revisa tu conexión y vuelve a intentar.'
+      );
+    } finally {
+      // Pase lo que pase, el botón vuelve a responder.
+      setSaving(false);
     }
-
-    setSaved(true);
-    if (isNew) router.replace(`/admin/productos/${id}`);
-    router.refresh();
   }
 
   return (

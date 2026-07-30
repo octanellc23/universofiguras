@@ -26,14 +26,20 @@ export function ShipForm({
     setGuardando(true);
     setError(null);
 
-    const result = await markShipped({ orderId, carrier: transportista, trackingNumber: numero });
-    setGuardando(false);
-
-    if (!result.ok) {
-      setError(result.error);
-      return;
+    try {
+      const result = await markShipped({ orderId, carrier: transportista, trackingNumber: numero });
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      router.refresh();
+    } catch {
+      // Mismo caso que en el formulario de figura: si el sitio se redesplegó
+      // con esta pestaña abierta, la acción de servidor ya no existe.
+      setError('El sitio se actualizó. Recarga la página con F5 y vuelve a intentar.');
+    } finally {
+      setGuardando(false);
     }
-    router.refresh();
   }
 
   return (
