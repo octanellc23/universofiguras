@@ -291,6 +291,7 @@ rompió.
 
 ```
 /CLAUDE.md               este archivo
+/ENTREGA.md              qué falta para entregar al cliente y quién lo hace
 /FIRESTORE-SCHEMA.md     esquema de datos, fuente de verdad del modelo
 /firebase.json           firestore + storage + functions + emuladores
 /firestore.rules         reglas de seguridad (Firestore)
