@@ -95,6 +95,7 @@ export function ShippingFormClient({ inicial }: { inicial: ShippingForm }) {
     setError(null);
 
     const input: SaveShippingInput = {
+      print: form.print,
       standard: form.standard,
       large: form.large,
       heavy: form.heavy,
@@ -156,6 +157,12 @@ export function ShippingFormClient({ inicial }: { inicial: ShippingForm }) {
 
       <div className="admin-grid">
         <div className="admin-col">
+          <Tarifa
+            titulo="Lámina"
+            ayuda="Prints en sobre rígido o tubo. Van por USPS Ground Advantage como paquete liviano: una caja Flat Rate costaría el doble por algo que pesa 200 gramos."
+            valor={form.print}
+            onChange={(v) => set('print', v)}
+          />
           <Tarifa
             titulo="Caja mediana"
             ayuda="Lo normal: una figura de 7 pulgadas en su caja. USPS Priority Mail Flat Rate Medium."

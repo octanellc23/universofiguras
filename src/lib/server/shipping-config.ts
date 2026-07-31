@@ -24,6 +24,7 @@ export interface BandForm {
 
 export interface ShippingForm {
   version: number;
+  print: RateForm;
   standard: RateForm;
   large: RateForm;
   heavy: RateForm;
@@ -93,6 +94,7 @@ export async function getShippingForm(): Promise<ShippingForm> {
 
   return {
     version: data.version ?? 1,
+    print: rate(tiers.print, 'USPS Ground Advantage'),
     standard: rate(tiers.standard, 'USPS Priority Mail'),
     large: rate(tiers.large, 'USPS Priority Mail (caja grande)'),
     heavy: rate(tiers.heavy, 'UPS Ground'),

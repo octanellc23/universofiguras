@@ -16,9 +16,10 @@ import type {
  */
 
 const TIER_RANK: Record<ShippingTier, number> = {
-  standard: 0,
-  large: 1,
-  heavy: 2,
+  print: 0,
+  standard: 1,
+  large: 2,
+  heavy: 3,
 };
 
 export function totalUnits(items: QuoteItem[]): number {
@@ -33,7 +34,9 @@ export function subtotalCents(items: QuoteItem[]): number {
 export function highestTier(items: QuoteItem[]): ShippingTier {
   return items.reduce<ShippingTier>(
     (acc, item) => (TIER_RANK[item.tier] > TIER_RANK[acc] ? item.tier : acc),
-    'standard'
+    // Se arranca desde el más barato: si el carrito solo trae láminas, el
+    // envío es el de láminas, no el de una caja de figura.
+    'print'
   );
 }
 

@@ -12,6 +12,7 @@ const ESTADO: Record<string, { texto: string; clase: string }> = {
 };
 
 const TAMANO: Record<string, string> = {
+  print: 'Lámina',
   standard: 'Mediana',
   large: 'Grande',
   heavy: 'Pesada',

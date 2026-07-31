@@ -8,6 +8,7 @@ const config = {
   domestic: {
     country: 'US',
     tiers: {
+      print: { label: 'USPS Ground Advantage', carrier: 'USPS', service: 'Ground Advantage', baseCents: 600, additionalItemCents: 150, deliveryDays: { min: 3, max: 6 } },
       standard: { label: 'USPS Priority', carrier: 'USPS', service: 'FR Medium', baseCents: 1200, additionalItemCents: 400, deliveryDays: { min: 2, max: 3 } },
       large: { label: 'USPS Priority L', carrier: 'USPS', service: 'FR Large', baseCents: 1800, additionalItemCents: 500, deliveryDays: { min: 2, max: 3 } },
       heavy: { label: 'UPS Ground', carrier: 'UPS', service: 'Ground', baseCents: 3200, additionalItemCents: 900, deliveryDays: { min: 3, max: 6 } },
@@ -52,6 +53,12 @@ function throws(label, fn, fragment) {
     console.log(`${ok ? 'OK  ' : 'FAIL'} ${label}: "${e.message}"`);
   }
 }
+
+// Láminas: el tier más barato, y en carrito mezclado NO manda él
+eq('2 láminas = 600 + 150',
+  buildShippingOptions([item({ tier: 'print', qty: 2, lineTotalCents: 3600 })], 'US', config)[0].amountCents, 750);
+eq('lámina + figura => manda la figura (1200 + 400)',
+  buildShippingOptions([item({ tier: 'print', lineTotalCents: 1800 }), item({ productId: 'p2', lineTotalCents: 4999 })], 'US', config)[0].amountCents, 1600);
 
 // I8: tier más alto + incremento, NO la suma de envíos individuales
 eq('3 standard = 1200 + 400*2',

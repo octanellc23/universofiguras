@@ -13,6 +13,7 @@ import { metaDescription, SITE_NAME, SITE_URL } from '@/lib/site';
 export const dynamic = 'force-dynamic';
 
 const TIER_LABEL: Record<string, string> = {
+  print: 'USPS Ground Advantage',
   standard: 'USPS Priority Mail',
   large: 'USPS Priority Mail (caja grande)',
   heavy: 'UPS Ground',
@@ -151,8 +152,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             />
           </div>
 
-          {/* Antes del botón, no después: quien compra tiene que verlo sí o sí. */}
-          <CondicionAviso condition={product.condition} />
+          {/* Antes del botón, no después: quien compra tiene que verlo sí o sí.
+              En una lámina no aplica: no hay caja que abrir. */}
+          {product.tier !== 'print' && <CondicionAviso condition={product.condition} />}
 
           <AddToCart
             productId={product.id}

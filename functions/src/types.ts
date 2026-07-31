@@ -3,7 +3,12 @@ import type { Timestamp } from 'firebase-admin/firestore';
 // Ver FIRESTORE-SCHEMA.md. Estos tipos son el contrato; si cambian, ese archivo
 // cambia en el mismo commit.
 
-export type ShippingTier = 'standard' | 'large' | 'heavy';
+/**
+ * `print` es para láminas en sobre rígido: van por Ground Advantage como
+ * paquete liviano, mucho más barato que una caja Flat Rate. Es el tier más
+ * bajo, así que en un carrito mezclado manda el de la figura.
+ */
+export type ShippingTier = 'print' | 'standard' | 'large' | 'heavy';
 export type ShippingMethod = 'domestic' | 'international' | 'pickup';
 
 export type ProductStatus = 'draft' | 'active' | 'archived';

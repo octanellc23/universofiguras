@@ -1,4 +1,4 @@
-export type ShippingTier = 'standard' | 'large' | 'heavy';
+export type ShippingTier = 'print' | 'standard' | 'large' | 'heavy';
 
 /** Producto ya aplanado y serializable para pasar de servidor a cliente. */
 export interface ProductView {

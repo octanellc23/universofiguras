@@ -433,10 +433,14 @@ export function ProductForm({ product }: { product: AdminProductDetail | null })
                 value={form.tier}
                 onChange={(event) => set('tier', event.target.value)}
               >
-                <option value="standard">Caja mediana — lo normal ($12)</option>
-                <option value="large">Caja grande ($18)</option>
-                <option value="heavy">Pesado, no entra en caja plana ($32, solo EE. UU.)</option>
+                <option value="print">Lámina en sobre rígido o tubo</option>
+                <option value="standard">Caja mediana — lo normal para figuras</option>
+                <option value="large">Caja grande</option>
+                <option value="heavy">Pesado, no entra en caja plana (solo EE. UU.)</option>
               </select>
+              <small className="field__hint">
+                En un carrito mezclado se cobra el envío del paquete más grande, no la suma.
+              </small>
             </label>
 
             <label className="field">
@@ -518,6 +522,11 @@ export function ProductForm({ product }: { product: AdminProductDetail | null })
               Se puede enviar fuera de EE. UU.
               {form.tier === 'heavy' && (
                 <small className="field__hint">Lo pesado no sale del país.</small>
+              )}
+              {form.tier === 'print' && form.internationalEligible && (
+                <small className="field__hint" style={{ color: 'var(--warning)' }}>
+                  Ojo: mandar una lámina por DHL cuesta más que la lámina.
+                </small>
               )}
             </label>
 

@@ -88,6 +88,7 @@ function splitList(value: string): string[] {
 }
 
 export interface SaveShippingInput {
+  print: { label: string; base: string; additional: string; daysMin: number; daysMax: number };
   standard: { label: string; base: string; additional: string; daysMin: number; daysMax: number };
   large: { label: string; base: string; additional: string; daysMin: number; daysMax: number };
   heavy: { label: string; base: string; additional: string; daysMin: number; daysMax: number };
@@ -160,6 +161,7 @@ export async function saveShipping(input: SaveShippingInput): Promise<SaveResult
   >;
 
   const tiersDomesticos = {
+    print: tier(input.print, 'print', 'lámina'),
     standard: tier(input.standard, 'standard', 'estándar'),
     large: tier(input.large, 'large', 'caja grande'),
     heavy: tier(input.heavy, 'heavy', 'pesado'),
@@ -484,7 +486,9 @@ export async function saveProduct(input: SaveProductInput): Promise<SaveResult> 
     return { ok: false, error: 'Ese link de YouTube no se entiende. Pega la dirección completa.' };
   }
 
-  const tier = ['standard', 'large', 'heavy'].includes(input.tier) ? input.tier : 'standard';
+  const tier = ['print', 'standard', 'large', 'heavy'].includes(input.tier)
+    ? input.tier
+    : 'standard';
 
   const common = {
     slug,
