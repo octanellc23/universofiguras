@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { AddToCart } from '@/components/AddToCart';
+import { CondicionAviso } from '@/components/CondicionAviso';
 import { JsonLd } from '@/components/JsonLd';
 import { StockBadge } from '@/components/StockBadge';
 import { VideoBlock } from '@/components/VideoBlock';
@@ -142,13 +143,16 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           {product.subtitle && <p className="buybox__note">{product.subtitle}</p>}
 
           <div className="buybox__price">{formatCents(product.priceCents)}</div>
-          <div style={{ marginBottom: 18 }}>
+          <div>
             <StockBadge
               available={product.available}
               stock={product.stock}
               reserved={product.reserved}
             />
           </div>
+
+          {/* Antes del botón, no después: quien compra tiene que verlo sí o sí. */}
+          <CondicionAviso condition={product.condition} />
 
           <AddToCart
             productId={product.id}

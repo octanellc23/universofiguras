@@ -880,6 +880,70 @@ select {
   color: var(--danger);
 }
 
+/* ---------- aviso de condición ---------- */
+
+.aviso {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 15px;
+  border-radius: var(--radius-sm);
+  border: 1px solid;
+  margin: 18px 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.aviso strong {
+  display: block;
+  font-size: 14.5px;
+  margin-bottom: 3px;
+}
+
+.aviso span {
+  color: var(--text-muted);
+}
+
+.aviso__icono {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 14px;
+}
+
+/* Ámbar y no rojo: es una advertencia que hay que leer, no un error. */
+.aviso--abierta {
+  border-color: rgba(251, 191, 36, 0.45);
+  background: rgba(251, 191, 36, 0.1);
+}
+
+.aviso--abierta .aviso__icono {
+  background: var(--warning);
+  color: #3a2a00;
+}
+
+.aviso--abierta strong {
+  color: var(--warning);
+}
+
+.aviso--sellada {
+  border-color: rgba(74, 222, 128, 0.35);
+  background: rgba(74, 222, 128, 0.08);
+}
+
+.aviso--sellada .aviso__icono {
+  background: var(--success);
+  color: #06341a;
+}
+
+.aviso--sellada strong {
+  color: var(--success);
+}
+
 /* ---------- avisos ---------- */
 
 .notice {

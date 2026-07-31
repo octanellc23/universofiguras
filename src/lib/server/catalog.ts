@@ -108,7 +108,10 @@ export async function getProductBySlug(slug: string): Promise<ProductView | null
 // Nombres en español de los países a los que enviamos. Las bandas viven en
 // Firestore; esto es solo la traducción para el selector.
 const COUNTRY_NAMES: Record<string, string> = {
-  US: 'Estados Unidos',
+  // Puerto Rico viaja como estado dentro de Estados Unidos, no como país
+  // aparte: así lo maneja Stripe y así lo cobra USPS, con tarifa doméstica.
+  // Decirlo en la etiqueta evita que un comprador de PR crea que no le llega.
+  US: 'Estados Unidos y Puerto Rico',
   MX: 'México',
   CR: 'Costa Rica',
   PA: 'Panamá',

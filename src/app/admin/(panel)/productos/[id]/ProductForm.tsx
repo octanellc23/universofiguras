@@ -37,7 +37,9 @@ export function ProductForm({ product }: { product: AdminProductDetail | null })
     manufacturer: product?.manufacturer ?? '',
     line: product?.line ?? '',
     scale: product?.scale ?? '',
-    condition: product?.condition ?? 'new',
+    // Lo normal aquí es abierta y reseñada, así que ese es el valor por
+    // defecto. Sellada es la excepción y hay que elegirla a propósito.
+    condition: product?.condition ?? 'openbox',
     price: product?.price ?? '',
     status: product?.status ?? 'draft',
     featured: product?.featured ?? false,
@@ -379,10 +381,13 @@ export function ProductForm({ product }: { product: AdminProductDetail | null })
                   value={form.condition}
                   onChange={(event) => set('condition', event.target.value)}
                 >
-                  <option value="new">Nueva, sellada</option>
-                  <option value="openbox">Caja abierta</option>
+                  <option value="openbox">Abierta y reseñada (lo normal)</option>
+                  <option value="new">Sellada, sin abrir</option>
                   <option value="used">Usada</option>
                 </select>
+                <small className="field__hint">
+                  Sale como aviso grande en la ficha, arriba del botón de comprar.
+                </small>
               </label>
             </div>
             <label className="field">
