@@ -140,6 +140,8 @@ export const createCheckout = onCall(
       signatureRequired: projectedTotal > fraudConfig.signatureRequiredAboveCents,
       flags: { manualReview: false, oversold: false, disputed: false, reasons: [] },
       consolidateHold: items.some((item) => item.consolidateHold),
+      // El más lento manda: si una figura sale en 3 días, el pedido sale en 3.
+      handlingDays: Math.max(...items.map((item) => item.handlingDays)),
       fulfillment: {
         carrier: null,
         trackingNumber: null,

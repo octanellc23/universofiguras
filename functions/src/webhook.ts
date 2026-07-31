@@ -3,7 +3,8 @@ import { onRequest } from 'firebase-functions/v2/https';
 import * as logger from 'firebase-functions/logger';
 import type Stripe from 'stripe';
 
-import { getFraudConfig } from './config';
+import { getFraudConfig, getStoreConfig } from './config';
+import { correoConfirmacion, enviarCorreo, RESEND_API_KEY, type DatosCorreo } from './email';
 import { COL, db } from './firebase';
 import { consumeReservation, releaseReservation } from './inventory';
 import { STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, stripe } from './stripe';
@@ -23,7 +24,7 @@ import { STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, stripe } from './stripe';
  */
 export const stripeWebhook = onRequest(
   {
-    secrets: [STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET],
+    secrets: [STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, RESEND_API_KEY],
     cors: false,
     // El webhook lo llama Stripe, no un navegador autenticado.
     invoker: 'public',
@@ -212,7 +213,68 @@ async function handleCompleted(session: Stripe.Checkout.Session): Promise<string
     logger.error('SOBREVENTA: pago cobrado sin inventario disponible', { orderId });
   }
 
+  // El correo va AL FINAL y no puede tumbar nada: el inventario ya se
+  // descontó y el pedido ya quedó registrado. Si el correo falla, se pierde
+  // un aviso, no una venta.
+  await enviarConfirmacion(orderId, orderSnap.data() ?? {}, session, totalCents);
+
   return orderId;
+}
+
+/**
+ * Correo de "recibimos tu pedido". Se marca en el propio pedido para que un
+ * reintento de Stripe no le mande dos.
+ */
+async function enviarConfirmacion(
+  orderId: string,
+  orden: FirebaseFirestore.DocumentData,
+  session: Stripe.Checkout.Session,
+  totalCents: number
+): Promise<void> {
+  const correo = session.customer_details?.email;
+  if (!correo || orden.emails?.confirmationSentAt) return;
+
+  const shipping = extractShippingDetails(session);
+  const store = await getStoreConfig();
+
+  const datos: DatosCorreo = {
+    numero: orden.number,
+    orderId,
+    items: orden.items ?? [],
+    subtotalCents: session.amount_subtotal ?? 0,
+    shippingCents: session.total_details?.amount_shipping ?? 0,
+    taxCents: session.total_details?.amount_tax ?? 0,
+    totalCents,
+    nombre: session.customer_details?.name ?? shipping?.name ?? null,
+    direccion: shipping?.address
+      ? {
+          line1: shipping.address.line1,
+          line2: shipping.address.line2,
+          city: shipping.address.city,
+          state: shipping.address.state,
+          postalCode: shipping.address.postal_code,
+          country: shipping.address.country,
+        }
+      : null,
+    metodoEnvio: orden.shippingQuote?.rateLabel ?? null,
+    diasDespacho: orden.handlingDays ?? 2,
+    firmaRequerida: totalCents > 0 && (orden.signatureRequired ?? false),
+  };
+
+  const { asunto, html } = correoConfirmacion(datos);
+  const enviado = await enviarCorreo({
+    para: correo,
+    asunto,
+    html,
+    responderA: store.supportEmail || undefined,
+  });
+
+  await db.collection(COL.orders).doc(orderId).update({
+    'emails.confirmationSentAt': FieldValue.serverTimestamp(),
+    'emails.confirmationOk': enviado,
+  });
+
+  logger.info('correo de confirmación', { orderId, enviado });
 }
 
 /** La sesión venció sin pago: el inventario vuelve al catálogo. */

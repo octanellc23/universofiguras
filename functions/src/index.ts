@@ -10,4 +10,5 @@ import './options';
 export { quoteCart, createCheckout } from './checkout';
 export { stripeWebhook } from './webhook';
 export { releaseExpiredReservations } from './scheduled';
+export { notificarEnvio } from './notifications';
 export { adjustStockLevel } from './admin';

@@ -93,6 +93,7 @@ export async function loadQuoteItems(lines: CartLineInput[]): Promise<QuoteItem[
       freeShippingEligible: product.shipping.freeShippingEligible,
       localPickupEligible: product.shipping.localPickupEligible,
       consolidateHold: product.fulfillment?.consolidateHold ?? false,
+      handlingDays: product.fulfillment?.handlingDays ?? 2,
     };
   });
 }

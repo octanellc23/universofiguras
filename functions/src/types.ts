@@ -144,6 +144,8 @@ export interface QuoteItem {
   freeShippingEligible: boolean;
   localPickupEligible: boolean;
   consolidateHold: boolean;
+  /** Días hábiles hasta despachar. Se promete por correo, así que viaja. */
+  handlingDays: number;
 }
 
 export interface ShippingOption {
