@@ -377,6 +377,29 @@ export async function savePost(input: SavePostInput): Promise<SaveResult> {
 }
 
 /**
+ * Borra una reseña. A diferencia de las figuras —que se archivan, porque un
+ * pedido viejo puede seguir apuntando a ellas— una entrada del blog no la
+ * referencia nada: se puede borrar de verdad.
+ */
+export async function deletePost(id: string): Promise<SaveResult> {
+  const session = await readAdminSession();
+  if (!session) return { ok: false, error: 'Tu sesión venció. Vuelve a entrar.' };
+
+  const ref = adminDb.collection('posts').doc(id);
+  const snap = await ref.get();
+  if (!snap.exists) return { ok: false, error: 'Esa reseña ya no existe.' };
+
+  const slug = snap.get('slug');
+  await ref.delete();
+
+  revalidatePath('/admin/blog');
+  revalidatePath('/blog');
+  if (slug) revalidatePath(`/blog/${slug}`);
+
+  return { ok: true, id };
+}
+
+/**
  * Enlaces de rastreo por transportista. El comprador quiere hacer clic, no
  * copiar un número y buscar en qué página pegarlo.
  */

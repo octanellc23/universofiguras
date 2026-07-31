@@ -4,7 +4,7 @@ import { deleteObject, getDownloadURL, ref as storageRef, uploadBytes } from 'fi
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { savePost, type SavePostInput } from '@/app/admin/actions';
+import { deletePost, savePost, type SavePostInput } from '@/app/admin/actions';
 import { storage } from '@/lib/client/firebase';
 import type { AdminPostDetail } from '@/lib/server/admin-catalog';
 
@@ -50,6 +50,10 @@ export function PostForm({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  // Dos pasos para borrar: el primer clic solo pregunta. Un botón de borrado
+  // que actúa al primer toque es una reseña perdida por un dedo torpe.
+  const [confirmando, setConfirmando] = useState(false);
+  const [borrando, setBorrando] = useState(false);
 
   function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -124,6 +128,29 @@ export function PostForm({
       );
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function borrar() {
+    setBorrando(true);
+    setError(null);
+    try {
+      // La portada primero: si se borra el documento y falla esto, el archivo
+      // queda huérfano en Storage y ya nadie sabe de dónde salió.
+      if (cover) {
+        await deleteObject(storageRef(storage, cover.storagePath)).catch(() => undefined);
+      }
+      const result = await deletePost(id);
+      if (!result.ok) {
+        setError(result.error);
+        setBorrando(false);
+        return;
+      }
+      router.replace('/admin/blog');
+      router.refresh();
+    } catch {
+      setError('No pudimos borrarla. Recarga la página y vuelve a intentar.');
+      setBorrando(false);
     }
   }
 
@@ -232,6 +259,45 @@ export function PostForm({
                 placeholder="simpsons, jakks, reseña"
               />
             </label>
+
+            {!isNew && (
+              <>
+                <div className="divider" />
+                {confirmando ? (
+                  <div className="notice notice--error" style={{ marginBottom: 0 }}>
+                    <p style={{ marginBottom: 12 }}>
+                      Se borra para siempre, junto con su portada. Si solo quieres sacarla del
+                      sitio, cámbiala a <strong>Borrador</strong> arriba.
+                    </p>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        className="btn btn--danger"
+                        disabled={borrando}
+                        onClick={borrar}
+                      >
+                        {borrando ? 'Borrando…' : 'Sí, borrarla'}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn--ghost"
+                        onClick={() => setConfirmando(false)}
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    className="link-btn"
+                    onClick={() => setConfirmando(true)}
+                  >
+                    Borrar esta reseña
+                  </button>
+                )}
+              </>
+            )}
           </section>
 
           <section className="panel">

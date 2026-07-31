@@ -189,6 +189,20 @@ select {
   align-items: start;
 }
 
+/* En tablet las cuatro columnas se estrechan hasta que "Reseñas" no cabe en
+   su columna. La marca pasa a ocupar la fila entera y los enlaces se reparten
+   el ancho completo. */
+@media (max-width: 980px) {
+  .footer-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 28px 24px;
+  }
+
+  .footer-grid > div:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
 @media (max-width: 620px) {
   .footer-grid {
     grid-template-columns: 1fr 1fr;
@@ -582,6 +596,16 @@ select {
 
 .btn--ghost:hover:not(:disabled) {
   background: var(--surface);
+}
+
+.btn--danger {
+  background: var(--danger);
+  color: #2a0b0b;
+  font-weight: 700;
+}
+
+.btn--danger:hover:not(:disabled) {
+  background: #ff9a9a;
 }
 
 .btn--block {
