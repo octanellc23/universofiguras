@@ -56,6 +56,30 @@ export default async function HomePage() {
 
       <section className="hero">
         <div className="shell">
+          {/* El logo va aquí y no en la barra: mide 1.6:1, así que a la altura
+              de un encabezado quedaría en 64 px de ancho y no se leería nada. */}
+          <a
+            href={store.youtubeChannelUrl || '/'}
+            target={store.youtubeChannelUrl ? '_blank' : undefined}
+            rel={store.youtubeChannelUrl ? 'noreferrer' : undefined}
+            className="hero__logo"
+          >
+            {/* WebP con PNG de respaldo: el logo tiene textura granulada y en
+                PNG pesaba 709 KB para mostrarse a 340 px. En WebP son 48. */}
+            <picture>
+              <source srcSet="/logo.webp" type="image/webp" />
+              <img
+                src="/logo.png"
+                alt="Lokillo's Hidden Gems"
+                width={700}
+                height={437}
+                // Es lo primero que se ve: cargarla con prioridad evita que el
+                // hero salte cuando aparece.
+                fetchPriority="high"
+              />
+            </picture>
+          </a>
+
           <span className="hero__eyebrow">▶ Cada figura, reseñada en video</span>
           <h1>Figuras que primero se ven, y después se tienen.</h1>
           <p>
