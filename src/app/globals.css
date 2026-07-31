@@ -295,7 +295,9 @@ select {
    de ~280 px de ancho deja de leerse. */
 .hero__logo {
   display: block;
-  width: min(420px, 82vw);
+  /* Tope en 380: el archivo original mide 474 px de ancho y estirarlo más lo
+     deja borroso. Si algún día llega una versión grande, esto puede subir. */
+  width: min(380px, 82vw);
 }
 
 .hero__logo img {
@@ -443,6 +445,32 @@ select {
 
 .price--sm {
   font-size: 15px;
+}
+
+/* Bloque que manda de la portada a los prints. */
+.promo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding: 28px 30px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background:
+    radial-gradient(600px 200px at 15% 0%, rgba(255, 90, 31, 0.14), transparent 70%),
+    var(--bg-elevated);
+}
+
+.promo h2 {
+  font-size: 21px;
+  margin-bottom: 6px;
+}
+
+.promo p {
+  color: var(--text-muted);
+  font-size: 14.5px;
+  max-width: 52ch;
 }
 
 /* ---------- insignias ---------- */

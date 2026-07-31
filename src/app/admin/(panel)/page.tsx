@@ -20,9 +20,14 @@ export default async function AdminHome() {
           <h1>Panel</h1>
           <p className="panel__hint">Lo que necesita tu atención hoy.</p>
         </div>
-        <Link href="/admin/productos/nuevo" className="btn btn--primary">
-          + Nueva figura
-        </Link>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <Link href="/admin/productos/nuevo" className="btn btn--primary">
+            + Nueva figura
+          </Link>
+          <Link href="/admin/productos/nuevo?tipo=print" className="btn btn--ghost">
+            + Nuevo print
+          </Link>
+        </div>
       </div>
 
       <div className="stat-row">

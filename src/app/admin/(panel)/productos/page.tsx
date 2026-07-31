@@ -31,9 +31,16 @@ export default async function ProductosPage() {
             publicadas
           </p>
         </div>
-        <Link href="/admin/productos/nuevo" className="btn btn--primary">
-          + Nueva figura
-        </Link>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <Link href="/admin/productos/nuevo" className="btn btn--primary">
+            + Nueva figura
+          </Link>
+          {/* Un print arranca ya configurado: tier de lámina, sin envío
+              internacional y en la categoría que lo manda a /prints. */}
+          <Link href="/admin/productos/nuevo?tipo=print" className="btn btn--ghost">
+            + Nuevo print
+          </Link>
+        </div>
       </div>
 
       {products.length === 0 ? (

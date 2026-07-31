@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { JsonLd } from '@/components/JsonLd';
 import { ProductCard } from '@/components/ProductCard';
 import { formatCents } from '@/lib/money';
@@ -19,11 +20,16 @@ export const metadata = {
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
-  const [products, freeShippingCents, store] = await Promise.all([
+  const [todos, freeShippingCents, store] = await Promise.all([
     listActiveProducts(),
     getFreeShippingThreshold(),
     getStoreContent(),
   ]);
+
+  // Las láminas tienen su propia página: mezclarlas con las figuras en la
+  // portada confunde dos cosas que se compran por razones distintas.
+  const products = todos.filter((p) => !p.categories.includes('prints'));
+  const hayPrints = todos.length > products.length;
 
   // sameAs le dice a Google que esta tienda y ese canal de YouTube son la
   // misma entidad. Es lo que hace que buscar el nombre del canal traiga
@@ -76,8 +82,11 @@ export default async function HomePage() {
               <img
                 src="/logo.png"
                 alt="Lokillo's Hidden Gems"
-                width={700}
-                height={437}
+                // Tamaño real del arte tras recortar el fondo. El original que
+                // nos pasaron es chico: mostrarlo más grande que esto lo pone
+                // borroso.
+                width={474}
+                height={249}
                 // Es lo primero que se ve: cargarla con prioridad evita que el
                 // hero salte cuando aparece.
                 fetchPriority="high"
@@ -106,7 +115,7 @@ export default async function HomePage() {
       <div className="shell">
         <section className="section">
           <div className="section__head">
-            <h2>En la tienda</h2>
+            <h2>Figuras</h2>
             <span>
               {freeShippingCents
                 ? `Envío gratis en Estados Unidos desde ${formatCents(freeShippingCents)}`
@@ -127,6 +136,23 @@ export default async function HomePage() {
             </div>
           )}
         </section>
+
+        {hayPrints && (
+          <section className="section">
+            <div className="promo">
+              <div>
+                <h2>Prints de la colección</h2>
+                <p>
+                  Fotografía de colección en papel premium. Edición limitada, del 8x10 al póster
+                  de 24x36.
+                </p>
+              </div>
+              <Link href="/prints" className="btn btn--primary">
+                Ver los prints
+              </Link>
+            </div>
+          </section>
+        )}
       </div>
     </>
   );

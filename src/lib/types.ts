@@ -11,6 +11,7 @@ export interface ProductView {
   line: string | null;
   scale: string | null;
   condition: string;
+  categories: string[];
   priceCents: number;
   compareAtPriceCents: number | null;
   available: number;

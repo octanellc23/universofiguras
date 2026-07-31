@@ -7,6 +7,7 @@ import type { CountryOption, ProductView } from '../types';
  */
 
 interface RawProduct {
+  categories: string[] | null;
   slug: string;
   title: string;
   subtitle: string | null;
@@ -46,6 +47,7 @@ function toView(id: string, raw: RawProduct): ProductView {
     line: raw.line ?? null,
     scale: raw.scale ?? null,
     condition: raw.condition ?? 'new',
+    categories: raw.categories ?? [],
     priceCents: raw.priceCents,
     compareAtPriceCents: raw.compareAtPriceCents ?? null,
     available: raw.available,
@@ -63,6 +65,25 @@ function toView(id: string, raw: RawProduct): ProductView {
     videoStartSeconds: raw.videoSnapshot?.startSeconds ?? null,
     images: raw.images ?? [],
   };
+}
+
+/** La categoría que separa láminas de figuras en la tienda. */
+export const CATEGORIA_PRINTS = 'prints';
+
+/**
+ * Las láminas, ordenadas de la más barata a la más cara — que además es de la
+ * más chica a la más grande, que es como se eligen.
+ */
+export async function listPrints(max = 24): Promise<ProductView[]> {
+  const snap = await adminDb
+    .collection('products')
+    .where('status', '==', 'active')
+    .where('categories', 'array-contains', CATEGORIA_PRINTS)
+    .orderBy('priceCents', 'asc')
+    .limit(max)
+    .get();
+
+  return snap.docs.map((doc) => toView(doc.id, doc.data() as RawProduct));
 }
 
 export async function listActiveProducts(max = 24): Promise<ProductView[]> {

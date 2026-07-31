@@ -14,7 +14,8 @@ export function Header() {
         </Link>
 
         <nav className="nav">
-          <Link href="/">Tienda</Link>
+          <Link href="/">Figuras</Link>
+          <Link href="/prints">Prints</Link>
           <Link href="/blog">Reseñas</Link>
         </nav>
 

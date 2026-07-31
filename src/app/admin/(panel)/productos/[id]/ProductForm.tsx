@@ -24,9 +24,16 @@ function slugify(value: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
-export function ProductForm({ product }: { product: AdminProductDetail | null }) {
+export function ProductForm({
+  product,
+  tipo = 'figura',
+}: {
+  product: AdminProductDetail | null;
+  tipo?: 'figura' | 'print';
+}) {
   const router = useRouter();
   const isNew = product === null;
+  const esPrint = isNew && tipo === 'print';
   const [id] = useState(() => product?.id ?? nuevoId());
 
   const [form, setForm] = useState({
@@ -37,27 +44,31 @@ export function ProductForm({ product }: { product: AdminProductDetail | null })
     manufacturer: product?.manufacturer ?? '',
     line: product?.line ?? '',
     scale: product?.scale ?? '',
-    // Lo normal aquí es abierta y reseñada, así que ese es el valor por
-    // defecto. Sellada es la excepción y hay que elegirla a propósito.
-    condition: product?.condition ?? 'openbox',
+    // Lo normal en figuras es abierta y reseñada, así que ese es el valor por
+    // defecto. Sellada es la excepción y hay que elegirla a propósito. Una
+    // lámina nunca fue abierta: sale nueva.
+    condition: product?.condition ?? (esPrint ? 'new' : 'openbox'),
     price: product?.price ?? '',
     status: product?.status ?? 'draft',
     featured: product?.featured ?? false,
     stock: product?.stock ?? 1,
-    tier: product?.tier ?? 'standard',
+    tier: product?.tier ?? (esPrint ? 'print' : 'standard'),
     weightLb: product?.weightLb ? String(product.weightLb) : '',
     length: product?.dimsIn.length ? String(product.dimsIn.length) : '',
     width: product?.dimsIn.width ? String(product.dimsIn.width) : '',
     height: product?.dimsIn.height ? String(product.dimsIn.height) : '',
     freeShippingEligible: product?.freeShippingEligible ?? true,
     localPickupEligible: product?.localPickupEligible ?? true,
-    internationalEligible: product?.internationalEligible ?? true,
-    handlingDays: product?.handlingDays ?? 2,
+    // Mandar una lámina de $18 por DHL cuesta más que la lámina.
+    internationalEligible: product?.internationalEligible ?? !esPrint,
+    handlingDays: product?.handlingDays ?? (esPrint ? 3 : 2),
     consolidateHold: product?.consolidateHold ?? false,
     videoUrl: product?.videoId ? `https://www.youtube.com/watch?v=${product.videoId}` : '',
     videoTitle: product?.videoTitle ?? '',
     videoStart: product?.videoStartSeconds ? String(product.videoStartSeconds) : '',
-    categories: product?.categories ?? '',
+    // La categoría es lo que hace que aparezca en /prints y no entre las
+    // figuras de la portada.
+    categories: product?.categories ?? (esPrint ? 'prints' : ''),
     tags: product?.tags ?? '',
   });
 
@@ -189,7 +200,9 @@ export function ProductForm({ product }: { product: AdminProductDetail | null })
           <Link href="/admin/productos" className="admin-back">
             ← Figuras
           </Link>
-          <h1>{isNew ? 'Nueva figura' : form.title || 'Figura'}</h1>
+          <h1>
+            {isNew ? (esPrint ? 'Nuevo print' : 'Nueva figura') : form.title || 'Figura'}
+          </h1>
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           {saved && <span style={{ color: 'var(--success)', fontSize: 14 }}>Guardado ✓</span>}
