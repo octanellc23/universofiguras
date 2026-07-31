@@ -8,6 +8,22 @@ import { ClearCart } from './ClearCart';
 export const metadata = { title: 'Tu pedido', robots: { index: false, follow: false } };
 export const dynamic = 'force-dynamic';
 
+/**
+ * "edgardoj2305@gmail.com" → "edg•••@gmail.com".
+ *
+ * Esta página es accesible con solo tener la URL. El identificador son 20
+ * caracteres al azar, así que no se adivina, pero un enlace se reenvía por
+ * WhatsApp sin pensarlo. Al comprador le basta reconocer su propio correo
+ * para saber a dónde le va a llegar el aviso; el resto no aporta nada y sí
+ * expone algo.
+ */
+function correoParcial(correo: string): string {
+  const [usuario, dominio] = correo.split('@');
+  if (!dominio) return '•••';
+  const visible = usuario.slice(0, Math.min(3, usuario.length));
+  return `${visible}•••@${dominio}`;
+}
+
 export default async function OrderPage({ params }: { params: Promise<{ orderId: string }> }) {
   const { orderId } = await params;
   const order = await getOrder(orderId);
@@ -32,7 +48,7 @@ export default async function OrderPage({ params }: { params: Promise<{ orderId:
         <p style={{ color: 'var(--text-muted)', marginTop: 18 }}>
           {confirmed
             ? order.customerEmail
-              ? `Te escribimos a ${order.customerEmail} en cuanto salga el paquete.`
+              ? `Te escribimos a ${correoParcial(order.customerEmail)} en cuanto salga el paquete.`
               : 'Te escribimos en cuanto salga el paquete.'
             : 'Esto toma unos segundos. Puedes recargar la página.'}
         </p>
