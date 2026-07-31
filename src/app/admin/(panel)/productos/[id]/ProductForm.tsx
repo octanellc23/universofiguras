@@ -4,7 +4,7 @@ import { deleteObject, getDownloadURL, ref as storageRef, uploadBytes } from 'fi
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { saveProduct, type SaveProductInput } from '@/app/admin/actions';
+import { deleteProduct, saveProduct, type SaveProductInput } from '@/app/admin/actions';
 import { callFunction } from '@/lib/client/firebase';
 import { storage } from '@/lib/client/firebase';
 import type { AdminProductDetail } from '@/lib/server/admin-catalog';
@@ -77,6 +77,10 @@ export function ProductForm({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  // El primer clic solo pregunta: borrar una figura al primer toque es perder
+  // fotos, medidas y descripción de una sentada.
+  const [confirmando, setConfirmando] = useState(false);
+  const [borrando, setBorrando] = useState(false);
 
   function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -190,6 +194,31 @@ export function ProductForm({
     } finally {
       // Pase lo que pase, el botón vuelve a responder.
       setSaving(false);
+    }
+  }
+
+  async function borrar() {
+    setBorrando(true);
+    setError(null);
+    try {
+      // Las fotos primero: si se borra el documento y esto falla, quedan
+      // archivos en Storage que ya nadie sabe de dónde salieron.
+      await Promise.all(
+        images.map((image) =>
+          deleteObject(storageRef(storage, image.storagePath)).catch(() => undefined)
+        )
+      );
+      const result = await deleteProduct(id);
+      if (!result.ok) {
+        setError(result.error);
+        setBorrando(false);
+        return;
+      }
+      router.replace('/admin/productos');
+      router.refresh();
+    } catch {
+      setError('No pudimos borrarlo. Recarga la página y vuelve a intentar.');
+      setBorrando(false);
     }
   }
 
@@ -564,6 +593,50 @@ export function ProductForm({
               />
               Esperar para mandar junto con otros pedidos
             </label>
+
+            {!isNew && (
+              <>
+                <div className="divider" />
+                {confirmando ? (
+                  <div className="notice notice--error" style={{ marginBottom: 0 }}>
+                    <p style={{ marginBottom: 12 }}>
+                      Se borra para siempre, con sus fotos. Los pedidos viejos no se tocan:
+                      guardan su propia copia de lo que se vendió.
+                      <br />
+                      <br />
+                      Si solo quieres sacarlo de la tienda, cámbialo a{' '}
+                      <strong>Archivada</strong> arriba y la dirección sigue viva para quien
+                      tenga el enlace.
+                    </p>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        className="btn btn--danger"
+                        disabled={borrando}
+                        onClick={borrar}
+                      >
+                        {borrando ? 'Borrando…' : 'Sí, borrarlo'}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn--ghost"
+                        onClick={() => setConfirmando(false)}
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    className="link-btn"
+                    onClick={() => setConfirmando(true)}
+                  >
+                    Borrar este producto
+                  </button>
+                )}
+              </>
+            )}
           </section>
         </div>
       </div>

@@ -14,6 +14,7 @@ export interface AdminProductRow {
   tier: string;
   imageUrl: string | null;
   hasVideo: boolean;
+  esPrint: boolean;
 }
 
 export async function listAllProducts(): Promise<AdminProductRow[]> {
@@ -33,6 +34,9 @@ export async function listAllProducts(): Promise<AdminProductRow[]> {
       tier: data.shipping?.tier ?? 'standard',
       imageUrl: data.images?.[0]?.url ?? null,
       hasVideo: Boolean(data.videoId),
+      // La categoría manda: es la misma que decide si sale en /prints o entre
+      // las figuras de la portada.
+      esPrint: (data.categories ?? []).includes('prints'),
     };
   });
 }

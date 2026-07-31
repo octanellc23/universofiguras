@@ -379,9 +379,46 @@ export async function savePost(input: SavePostInput): Promise<SaveResult> {
 }
 
 /**
- * Borra una reseña. A diferencia de las figuras —que se archivan, porque un
- * pedido viejo puede seguir apuntando a ellas— una entrada del blog no la
- * referencia nada: se puede borrar de verdad.
+ * Borra un producto.
+ *
+ * Es seguro para el historial: cada pedido guarda una COPIA de lo que se
+ * compró —título, precio, cantidad—, así que un pedido de hace tres meses
+ * sigue diciendo lo mismo aunque la figura ya no exista.
+ *
+ * Lo que NO es seguro es borrar algo que alguien tiene apartado en un pago a
+ * medio hacer: esa compra terminaría cobrando por un producto fantasma. Por
+ * eso se bloquea mientras haya unidades reservadas.
+ */
+export async function deleteProduct(id: string): Promise<SaveResult> {
+  const session = await readAdminSession();
+  if (!session) return { ok: false, error: 'Tu sesión venció. Vuelve a entrar.' };
+
+  const ref = adminDb.collection('products').doc(id);
+  const snap = await ref.get();
+  if (!snap.exists) return { ok: false, error: 'Ese producto ya no existe.' };
+
+  const reserved = (snap.get('reserved') as number) ?? 0;
+  if (reserved > 0) {
+    return {
+      ok: false,
+      error: `Hay ${reserved} unidad(es) apartadas en una compra en curso. Espera a que se libere (30 minutos) o archívalo en vez de borrarlo.`,
+    };
+  }
+
+  const slug = snap.get('slug');
+  await ref.delete();
+
+  revalidatePath('/admin/productos');
+  revalidatePath('/');
+  revalidatePath('/prints');
+  if (slug) revalidatePath(`/producto/${slug}`);
+
+  return { ok: true, id };
+}
+
+/**
+ * Borra una reseña. Igual que con los productos: nada la referencia hacia
+ * atrás, así que se puede borrar de verdad.
  */
 export async function deletePost(id: string): Promise<SaveResult> {
   const session = await readAdminSession();
