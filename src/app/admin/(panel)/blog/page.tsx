@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { listAllPosts } from '@/lib/server/admin-catalog';
 
-export const metadata = { title: 'Reseñas — Panel' };
+export const metadata = { title: 'Reseñas' };
 export const dynamic = 'force-dynamic';
 
 const ESTADO: Record<string, { texto: string; clase: string }> = {

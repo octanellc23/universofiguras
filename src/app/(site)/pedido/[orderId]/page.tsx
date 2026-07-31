@@ -4,7 +4,8 @@ import { formatCents } from '@/lib/money';
 import { getOrder } from '@/lib/server/catalog';
 import { ClearCart } from './ClearCart';
 
-export const metadata = { title: 'Tu pedido — Universo Figuras' };
+// Un pedido indexado sería una filtración: lleva nombre, correo y dirección.
+export const metadata = { title: 'Tu pedido', robots: { index: false, follow: false } };
 export const dynamic = 'force-dynamic';
 
 export default async function OrderPage({ params }: { params: Promise<{ orderId: string }> }) {

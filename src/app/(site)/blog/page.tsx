@@ -1,7 +1,12 @@
 import Link from 'next/link';
 import { listPublishedPosts } from '@/lib/server/blog';
 
-export const metadata = { title: 'Reseñas — Universo Figuras' };
+export const metadata = {
+  title: 'Reseñas',
+  description:
+    'Cada figura que vendemos, contada en detalle: qué trae la caja, cómo se ve de cerca y por qué vale la pena.',
+  alternates: { canonical: '/blog' },
+};
 export const dynamic = 'force-dynamic';
 
 export default async function BlogPage() {

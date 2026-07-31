@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { readAdminSession } from '@/lib/server/auth';
 import { LoginForm } from './LoginForm';
 
-export const metadata = { title: 'Entrar — Universo Figuras' };
+export const metadata = { title: 'Entrar', robots: { index: false, follow: false } };
 export const dynamic = 'force-dynamic';
 
 export default async function LoginPage() {

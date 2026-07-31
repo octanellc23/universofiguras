@@ -37,12 +37,42 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
             {store.supportEmail && (
               <a href={`mailto:${store.supportEmail}`}>{store.supportEmail}</a>
             )}
+          </nav>
+
+          <nav className="footer-links">
             {store.youtubeChannelUrl && (
               <a href={store.youtubeChannelUrl} target="_blank" rel="noreferrer">
-                El canal ↗
+                YouTube ↗
+              </a>
+            )}
+            {store.social.instagram && (
+              <a href={store.social.instagram} target="_blank" rel="noreferrer">
+                Instagram ↗
+              </a>
+            )}
+            {store.social.facebook && (
+              <a href={store.social.facebook} target="_blank" rel="noreferrer">
+                Facebook ↗
+              </a>
+            )}
+            {store.social.tiktok && (
+              <a href={store.social.tiktok} target="_blank" rel="noreferrer">
+                TikTok ↗
               </a>
             )}
           </nav>
+        </div>
+
+        <div className="shell footer-credit">
+          <span>
+            © {new Date().getFullYear()} {store.storeName}
+          </span>
+          <span>
+            Designed by{' '}
+            <a href="https://octanellc.org" target="_blank" rel="noreferrer">
+              Octanellc.org
+            </a>
+          </span>
         </div>
       </footer>
     </CartProvider>

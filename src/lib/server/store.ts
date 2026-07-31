@@ -4,7 +4,12 @@ export interface StoreContent {
   storeName: string;
   supportEmail: string;
   youtubeChannelUrl: string;
-  social: { instagram: string | null; tiktok: string | null; x: string | null };
+  social: {
+    instagram: string | null;
+    facebook: string | null;
+    tiktok: string | null;
+    x: string | null;
+  };
   about: string;
   returns: string;
   shipping: string;
@@ -32,6 +37,7 @@ export async function getStoreContent(): Promise<StoreContent> {
     youtubeChannelUrl: limpio(data.youtubeChannelUrl),
     social: {
       instagram: limpio(data.social?.instagram) || null,
+      facebook: limpio(data.social?.facebook) || null,
       tiktok: limpio(data.social?.tiktok) || null,
       x: limpio(data.social?.x) || null,
     },

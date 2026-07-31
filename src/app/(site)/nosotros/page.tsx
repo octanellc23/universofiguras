@@ -1,7 +1,11 @@
 import { TextPage } from '@/components/TextPage';
 import { getStoreContent } from '@/lib/server/store';
 
-export const metadata = { title: 'Nosotros — Universo Figuras' };
+export const metadata = {
+  title: 'Nosotros',
+  description: 'Quiénes somos y por qué vendemos figuras de acción coleccionables.',
+  alternates: { canonical: '/nosotros' },
+};
 export const dynamic = 'force-dynamic';
 
 export default async function NosotrosPage() {

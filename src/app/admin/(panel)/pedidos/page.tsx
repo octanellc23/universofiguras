@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { formatCents } from '@/lib/money';
 import { listOrders } from '@/lib/server/admin-catalog';
 
-export const metadata = { title: 'Pedidos — Panel' };
+export const metadata = { title: 'Pedidos' };
 export const dynamic = 'force-dynamic';
 
 const ESTADO: Record<string, { texto: string; clase: string }> = {

@@ -2,10 +2,12 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { AddToCart } from '@/components/AddToCart';
+import { JsonLd } from '@/components/JsonLd';
 import { StockBadge } from '@/components/StockBadge';
 import { VideoBlock } from '@/components/VideoBlock';
 import { formatCents } from '@/lib/money';
 import { getProductBySlug } from '@/lib/server/catalog';
+import { metaDescription, SITE_NAME, SITE_URL } from '@/lib/site';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,11 +24,29 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const product = await getProductBySlug(slug);
-  if (!product) return { title: 'Figura no encontrada — Universo Figuras' };
+  if (!product) return { title: 'Figura no encontrada' };
+
+  // Si no hay descripción escrita, una frase armada vale más que un vacío:
+  // Google usa esto como resumen del resultado.
+  const description =
+    metaDescription(product.description) ||
+    `${product.title}${product.manufacturer ? ` de ${product.manufacturer}` : ''} — ${formatCents(
+      product.priceCents
+    )}. Reseñada en video y enviada desde Estados Unidos.`;
+
+  const imagen = product.images[0]?.url;
 
   return {
-    title: `${product.title} — Universo Figuras`,
-    description: product.description.slice(0, 155),
+    title: product.title,
+    description,
+    alternates: { canonical: `/producto/${product.slug}` },
+    openGraph: {
+      type: 'website',
+      title: product.title,
+      description,
+      url: `${SITE_URL}/producto/${product.slug}`,
+      ...(imagen ? { images: [{ url: imagen, alt: product.title }] } : {}),
+    },
   };
 }
 
@@ -36,9 +56,56 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   if (!product) notFound();
 
   const image = product.images[0];
+  const url = `${SITE_URL}/producto/${product.slug}`;
+
+  const CONDICION: Record<string, string> = {
+    new: 'https://schema.org/NewCondition',
+    openbox: 'https://schema.org/NewCondition',
+    used: 'https://schema.org/UsedCondition',
+  };
 
   return (
     <div className="shell">
+      <JsonLd
+        data={{
+          '@context': 'https://schema.org',
+          '@type': 'Product',
+          name: product.title,
+          description: product.description || product.title,
+          image: product.images.map((img) => img.url),
+          ...(product.manufacturer
+            ? { brand: { '@type': 'Brand', name: product.manufacturer } }
+            : {}),
+          ...(product.scale ? { size: product.scale } : {}),
+          weight: { '@type': 'QuantitativeValue', value: product.weightGrams, unitCode: 'GRM' },
+          offers: {
+            '@type': 'Offer',
+            url,
+            priceCurrency: 'USD',
+            // schema.org quiere el precio como número decimal, no como texto
+            // con símbolo.
+            price: (product.priceCents / 100).toFixed(2),
+            itemCondition: CONDICION[product.condition] ?? CONDICION.new,
+            availability:
+              product.available > 0
+                ? 'https://schema.org/InStock'
+                : 'https://schema.org/OutOfStock',
+            seller: { '@type': 'Organization', name: SITE_NAME },
+          },
+        }}
+      />
+
+      <JsonLd
+        data={{
+          '@context': 'https://schema.org',
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Tienda', item: SITE_URL },
+            { '@type': 'ListItem', position: 2, name: product.title, item: url },
+          ],
+        }}
+      />
+
       <div className="breadcrumb">
         <Link href="/">Tienda</Link> <span>/</span> {product.title}
       </div>

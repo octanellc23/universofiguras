@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { formatCents } from '@/lib/money';
 import { listAllProducts, listOrders } from '@/lib/server/admin-catalog';
 
-export const metadata = { title: 'Panel — Universo Figuras' };
+export const metadata = { title: 'Resumen' };
 export const dynamic = 'force-dynamic';
 
 export default async function AdminHome() {

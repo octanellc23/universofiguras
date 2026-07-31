@@ -1,7 +1,8 @@
 import { CartClient } from './CartClient';
 import { getShippingCountries } from '@/lib/server/catalog';
 
-export const metadata = { title: 'Tu carrito — Universo Figuras' };
+// El carrito es de una sola persona: no hay nada que indexar.
+export const metadata = { title: 'Tu carrito', robots: { index: false, follow: true } };
 export const dynamic = 'force-dynamic';
 
 export default async function CartPage() {

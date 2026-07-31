@@ -1,7 +1,7 @@
 import { getShippingForm } from '@/lib/server/shipping-config';
 import { ShippingFormClient } from './ShippingForm';
 
-export const metadata = { title: 'Tarifas de envío — Panel' };
+export const metadata = { title: 'Tarifas de envío' };
 export const dynamic = 'force-dynamic';
 
 export default async function EnviosAdminPage() {

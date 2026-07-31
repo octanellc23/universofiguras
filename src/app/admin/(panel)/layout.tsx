@@ -4,6 +4,13 @@ import { requireAdmin } from '@/lib/server/auth';
 
 export const dynamic = 'force-dynamic';
 
+// El panel no se indexa. robots.txt ya lo excluye, pero un enlace suelto en
+// cualquier lado bastaría para que un buscador lo intentara igual.
+export const metadata = {
+  title: { default: 'Panel', template: '%s · Panel' },
+  robots: { index: false, follow: false },
+};
+
 export default async function PanelLayout({ children }: { children: React.ReactNode }) {
   // Una sola verificación, en el layout: todo lo que cuelga de aquí ya está
   // protegido. /admin/login queda fuera de este grupo a propósito, si no se

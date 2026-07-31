@@ -1,7 +1,12 @@
 import { TextPage } from '@/components/TextPage';
 import { getStoreContent } from '@/lib/server/store';
 
-export const metadata = { title: 'Envíos — Universo Figuras' };
+export const metadata = {
+  title: 'Envíos',
+  description:
+    'Cómo enviamos: transportistas, tiempos y costos para Estados Unidos y Latinoamérica.',
+  alternates: { canonical: '/envios' },
+};
 export const dynamic = 'force-dynamic';
 
 export default async function EnviosPage() {

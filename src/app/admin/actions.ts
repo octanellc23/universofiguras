@@ -224,6 +224,7 @@ export interface SaveStoreInput {
   supportEmail: string;
   youtubeChannelUrl: string;
   instagram: string;
+  facebook: string;
   tiktok: string;
   x: string;
   about: string;
@@ -244,7 +245,16 @@ export async function saveStore(input: SaveStoreInput): Promise<SaveResult> {
   const url = (valor: string): string | null => {
     const limpio = valor.trim();
     if (!limpio) return null;
-    return /^https?:\/\//i.test(limpio) ? limpio : `https://${limpio}`;
+    const completo = /^https?:\/\//i.test(limpio) ? limpio : `https://${limpio}`;
+    try {
+      // Los links que se copian desde las apps traen parámetros de
+      // seguimiento (?igsh=, ?fbclid=). No aportan nada y ensucian el enlace.
+      const u = new URL(completo);
+      u.search = '';
+      return u.toString().replace(/\/$/, '');
+    } catch {
+      return completo;
+    }
   };
 
   await adminDb
@@ -257,6 +267,7 @@ export async function saveStore(input: SaveStoreInput): Promise<SaveResult> {
         youtubeChannelUrl: url(input.youtubeChannelUrl) ?? '',
         social: {
           instagram: url(input.instagram),
+          facebook: url(input.facebook),
           tiktok: url(input.tiktok),
           x: url(input.x),
         },

@@ -13,6 +13,7 @@ export function StoreForm({ store }: { store: StoreContent }) {
     supportEmail: store.supportEmail,
     youtubeChannelUrl: store.youtubeChannelUrl,
     instagram: store.social.instagram ?? '',
+    facebook: store.social.facebook ?? '',
     tiktok: store.social.tiktok ?? '',
     x: store.social.x ?? '',
     about: store.about,
@@ -180,6 +181,16 @@ export function StoreForm({ store }: { store: StoreContent }) {
                 value={form.instagram}
                 onChange={(event) => set('instagram', event.target.value)}
                 placeholder="instagram.com/tucuenta"
+              />
+            </label>
+
+            <label className="field">
+              <span className="field__label">Facebook</span>
+              <input
+                className="select"
+                value={form.facebook}
+                onChange={(event) => set('facebook', event.target.value)}
+                placeholder="facebook.com/tupagina"
               />
             </label>
 

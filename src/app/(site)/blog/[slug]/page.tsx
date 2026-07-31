@@ -2,8 +2,10 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ProductCard } from '@/components/ProductCard';
+import { JsonLd } from '@/components/JsonLd';
 import { VideoBlock } from '@/components/VideoBlock';
 import { getPostBySlug } from '@/lib/server/blog';
+import { metaDescription, SITE_NAME, SITE_URL } from '@/lib/site';
 import { getProductsByIds } from '@/lib/server/catalog';
 
 export const dynamic = 'force-dynamic';
@@ -15,8 +17,23 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const post = await getPostBySlug(slug);
-  if (!post) return { title: 'Reseña no encontrada — Universo Figuras' };
-  return { title: `${post.title} — Universo Figuras`, description: post.excerpt };
+  if (!post) return { title: 'Reseña no encontrada' };
+
+  const imagen = post.coverUrl ?? (post.videoId ? `https://i.ytimg.com/vi/${post.videoId}/maxresdefault.jpg` : null);
+
+  return {
+    title: post.title,
+    description: metaDescription(post.excerpt),
+    alternates: { canonical: `/blog/${post.slug}` },
+    openGraph: {
+      type: 'article',
+      title: post.title,
+      description: metaDescription(post.excerpt),
+      url: `${SITE_URL}/blog/${post.slug}`,
+      ...(post.publishedAt ? { publishedTime: new Date(post.publishedAt).toISOString() } : {}),
+      ...(imagen ? { images: [{ url: imagen, alt: post.title }] } : {}),
+    },
+  };
 }
 
 export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -32,6 +49,22 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
 
   return (
     <div className="shell">
+      <JsonLd
+        data={{
+          '@context': 'https://schema.org',
+          '@type': 'Article',
+          headline: post.title,
+          description: metaDescription(post.excerpt),
+          ...(post.coverUrl ? { image: [post.coverUrl] } : {}),
+          ...(post.publishedAt
+            ? { datePublished: new Date(post.publishedAt).toISOString() }
+            : {}),
+          author: { '@type': 'Organization', name: SITE_NAME },
+          publisher: { '@type': 'Organization', name: SITE_NAME },
+          mainEntityOfPage: `${SITE_URL}/blog/${post.slug}`,
+        }}
+      />
+
       <div className="breadcrumb">
         <Link href="/blog">Reseñas</Link> <span>/</span> {post.title}
       </div>
