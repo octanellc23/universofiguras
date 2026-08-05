@@ -487,10 +487,14 @@ export function ProductForm({
 
             <label className="field">
               <span className="field__label">Peso en libras *</span>
+              {/* step="any" y no un número: con step fijo el navegador solo
+                  acepta los valores de esa escalera. Con step 0.1 desde 0.01,
+                  escribir 1.00 daba "introduzca un valor válido" — que es lo
+                  último que uno entiende al llenar un formulario. */}
               <input
                 type="number"
                 min={0.01}
-                step={0.1}
+                step="any"
                 className="select"
                 value={form.weightLb}
                 onChange={(event) => set('weightLb', event.target.value)}
@@ -507,7 +511,7 @@ export function ProductForm({
               <input
                 type="number"
                 min={0.1}
-                step={0.5}
+                step="any"
                 className="select"
                 value={form.length}
                 onChange={(event) => set('length', event.target.value)}
@@ -517,7 +521,7 @@ export function ProductForm({
               <input
                 type="number"
                 min={0.1}
-                step={0.5}
+                step="any"
                 className="select"
                 value={form.width}
                 onChange={(event) => set('width', event.target.value)}
@@ -527,7 +531,7 @@ export function ProductForm({
               <input
                 type="number"
                 min={0.1}
-                step={0.5}
+                step="any"
                 className="select"
                 value={form.height}
                 onChange={(event) => set('height', event.target.value)}
