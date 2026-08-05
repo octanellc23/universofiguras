@@ -20,6 +20,7 @@ Para el detalle técnico —por qué las cosas están hechas como están— ver
 | Proyecto Firebase / Google Cloud | `universo-figuras` | cuenta del desarrollador |
 | Repositorio | `github.com/octanellc23/universofiguras` (privado) | cuenta del desarrollador |
 | Stripe | cuenta de pruebas del desarrollador | **hay que cambiarla** |
+| Resend (correos) | cuenta creada a nombre del cliente | del cliente |
 | Dominio | registrador donde se compró | — |
 
 URL de respaldo si el dominio falla:
@@ -118,7 +119,33 @@ Cuidado con el póster de 24x36: va en tubo, cuesta más que $6 de enviar, y
 como el envío gratis arranca en $50 la tienda lo absorbe siempre. Es una
 decisión tomada a propósito, pero conviene verla con números reales.
 
-### 3.4 Contenido — **lo hace Chris**
+### 3.4 Correos transaccionales — **cuenta a nombre de Chris**
+
+El código está escrito y probado: confirmación de pedido al cobrarse, y aviso
+de envío con número de rastreo al despacharlo. Falta activarlo.
+
+1. Crear la cuenta en **resend.com** con un correo que controle Chris. A
+   diferencia de Stripe, aquí no hay verificación de identidad ni banco: es
+   una cuenta técnica, y por eso conviene que nazca a su nombre en vez de
+   migrarla después.
+2. Verificar el dominio `universofiguras.com` con los registros DNS que da
+   Resend (SPF y DKIM). **Sin esto los correos salen pero caen en spam**, y un
+   aviso de envío en spam genera justo el reclamo que quiere evitar.
+3. Crear una clave de API y guardarla:
+   ```bash
+   firebase functions:secrets:set RESEND_API_KEY
+   ```
+4. Redesplegar: `firebase deploy --only functions`
+
+Los correos salen desde `pedidos@universofiguras.com`, que **no necesita
+buzón** — enviar y recibir son cosas distintas. Las respuestas van al correo
+de contacto que se configure en *Panel → La tienda*; si ese campo está vacío,
+las respuestas se pierden.
+
+Si algún día hay que cambiar de cuenta, es una clave nueva y un redespliegue.
+No tiene nada del riesgo de mudar Stripe.
+
+### 3.5 Contenido — **lo hace Chris**
 
 En **Panel → La tienda**:
 - Correo de contacto (hoy dice `REEMPLAZAR@ejemplo.com`).
@@ -146,6 +173,7 @@ A diferencia de Stripe, esto **sí se transfiere**.
 | Repositorio GitHub | Transferir el repositorio a su cuenta, o agregarlo como colaborador | desarrollador |
 | Dominio | Transferir en el registrador | desarrollador |
 | Acceso al panel | Ya tiene: `chrisjonas1495@gmail.com` con permiso de admin | hecho |
+| Resend | Se crea directo a su nombre, no hay nada que migrar | hecho al crearla |
 
 Costo mensual esperado con poco tráfico: unos pocos dólares. Lo único que
 corre las 24 horas es la instancia mínima de App Hosting cuando se active.
@@ -247,7 +275,5 @@ Están documentadas para que no se repitan:
   consola de Firebase.
 - `minInstances` en `apphosting.yaml` está en 0. Subirlo a 1 antes del primer
   video evita el arranque en frío justo cuando entran 200 personas.
-- Emails transaccionales (confirmación de compra, aviso de envío). Hoy el
-  comprador solo recibe el recibo de Stripe.
 - El logo original es chico (474×249 px de arte real). Si aparece una versión
   grande o en vector, el logo del sitio y el icono ganan nitidez.
