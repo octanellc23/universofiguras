@@ -3,11 +3,12 @@
 import { deleteObject, getDownloadURL, ref as storageRef, uploadBytes } from 'firebase/storage';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { deleteProduct, saveProduct, type SaveProductInput } from '@/app/admin/actions';
 import { callFunction } from '@/lib/client/firebase';
 import { storage } from '@/lib/client/firebase';
 import type { AdminProductDetail } from '@/lib/server/admin-catalog';
+import { NOMBRE_TIER, sugerirTier } from '@/lib/shipping-tier';
 
 type Image = AdminProductDetail['images'][number];
 
@@ -81,6 +82,26 @@ export function ProductForm({
   // fotos, medidas y descripción de una sentada.
   const [confirmando, setConfirmando] = useState(false);
   const [borrando, setBorrando] = useState(false);
+
+  // En una figura ya cargada se respeta lo que está guardado; en una nueva,
+  // las medidas eligen hasta que él toque el selector.
+  const [tierManual, setTierManual] = useState(!isNew);
+
+  const sugerencia = useMemo(
+    () =>
+      sugerirTier({
+        weightLb: Number(form.weightLb),
+        lengthIn: Number(form.length),
+        widthIn: Number(form.width),
+        heightIn: Number(form.height),
+      }),
+    [form.weightLb, form.length, form.width, form.height]
+  );
+
+  useEffect(() => {
+    if (tierManual || !sugerencia || sugerencia.tier === form.tier) return;
+    setForm((current) => ({ ...current, tier: sugerencia.tier }));
+  }, [sugerencia, tierManual, form.tier]);
 
   function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -469,23 +490,6 @@ export function ProductForm({
             )}
 
             <label className="field">
-              <span className="field__label">Tamaño del paquete *</span>
-              <select
-                className="select"
-                value={form.tier}
-                onChange={(event) => set('tier', event.target.value)}
-              >
-                <option value="print">Lámina en sobre rígido o tubo</option>
-                <option value="standard">Caja mediana — lo normal para figuras</option>
-                <option value="large">Caja grande</option>
-                <option value="heavy">Pesado, no entra en caja plana (solo EE. UU.)</option>
-              </select>
-              <small className="field__hint">
-                En un carrito mezclado se cobra el envío del paquete más grande, no la suma.
-              </small>
-            </label>
-
-            <label className="field">
               <span className="field__label">Peso en libras *</span>
               {/* step="any" y no un número: con step fijo el navegador solo
                   acepta los valores de esa escalera. Con step 0.1 desde 0.01,
@@ -539,6 +543,55 @@ export function ProductForm({
                 required
               />
             </div>
+
+            <label className="field">
+              <span className="field__label">Tamaño del paquete *</span>
+              <select
+                className="select"
+                value={form.tier}
+                onChange={(event) => {
+                  // A partir de aquí manda él: la sugerencia deja de pisar su
+                  // elección, pero se sigue mostrando por si se equivocó.
+                  setTierManual(true);
+                  set('tier', event.target.value);
+                }}
+              >
+                <option value="print">Lámina en sobre rígido o tubo</option>
+                <option value="standard">Caja mediana — lo normal para figuras</option>
+                <option value="large">Caja grande</option>
+                <option value="heavy">Pesado, no entra en caja plana (solo EE. UU.)</option>
+              </select>
+
+              {sugerencia && sugerencia.tier === form.tier && (
+                <small className="field__hint">
+                  Elegido por las medidas: {sugerencia.razon}
+                </small>
+              )}
+
+              {sugerencia && sugerencia.tier !== form.tier && (
+                <small className="field__hint" style={{ color: 'var(--warning)' }}>
+                  Por las medidas debería ser <strong>{NOMBRE_TIER[sugerencia.tier]}</strong>.{' '}
+                  {sugerencia.razon}{' '}
+                  <button
+                    type="button"
+                    className="link-btn"
+                    style={{ minHeight: 0, padding: 0, color: 'var(--warning)' }}
+                    onClick={() => {
+                      setTierManual(false);
+                      set('tier', sugerencia.tier);
+                    }}
+                  >
+                    Usar esa
+                  </button>
+                </small>
+              )}
+
+              {!sugerencia && (
+                <small className="field__hint">
+                  Completa el peso y las medidas y se elige solo.
+                </small>
+              )}
+            </label>
 
             <div className="divider" />
 
