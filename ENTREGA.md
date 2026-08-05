@@ -85,17 +85,37 @@ que se usó para desarrollar es del desarrollador y no puede pasar a su nombre.
    ```
 5. Redesplegar las funciones: `firebase deploy --only functions`
 
-### 3.2 Impuestos — **la hace Chris**
+### 3.2 Impuestos — **lo único que puede costar dinero**
 
-Hoy la tienda **no cobra impuesto sobre las ventas**: el interruptor
-`automaticTaxEnabled` está en `false` para poder desarrollar.
+**Hoy la tienda cobra dinero real y NO cobra impuesto sobre las ventas.**
 
-1. En Stripe: cargar la **dirección fiscal** de la empresa. Sin ella,
-   `automatic_tax` rechaza toda sesión de pago.
-2. En Stripe: agregar el **registro fiscal de Connecticut**. Sin el registro,
-   Stripe Tax cobra $0 **en silencio** — no falla, simplemente no cobra, y eso
-   se descubre cuando el estado lo reclama.
-3. En el panel → *La tienda*: poner `automaticTaxEnabled` en `true`.
+Estado verificado contra la API de Stripe:
+
+| | |
+|---|---|
+| Stripe Tax | `active` |
+| Dirección fiscal | ✅ Middletown, CT |
+| **Registro de Connecticut** | ❌ **ninguno** |
+| `automaticTaxEnabled` en el panel | `false` |
+
+**El registro es lo que falta.** Stripe Tax solo cobra en las jurisdicciones
+donde hay un registro cargado: con la configuración activa pero sin registros,
+calcula **$0 y no se queja**. Todo se ve encendido y no cobra nada.
+
+Los tres pasos, en orden:
+
+1. **Connecticut emite el permiso** de Sales & Use Tax a nombre del negocio.
+   Agregar el registro en Stripe **no** registra ante el estado: es al revés.
+   Si le corresponde, desde cuándo, y qué fecha usar, es conversación con su
+   contador.
+2. **En Stripe** → *Tax → Registrations → Add registration* → United States →
+   Connecticut, con la fecha desde la que aplica.
+3. **En el panel → La tienda**: poner el interruptor de impuestos en `true`.
+
+> **El paso 3 es el que se olvida.** Sin él, Chris va a creer que cobra
+> impuesto —porque hizo el trámite y lo cargó en Stripe— y no va a estar
+> cobrando nada. Después de activarlo, verificar que una compra de prueba
+> traiga impuesto real y no cero.
 
 Detalle que sorprende: en Connecticut **el cargo de envío también es
 gravable** cuando el artículo lo es. Ya está contemplado en el código.
