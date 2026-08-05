@@ -40,6 +40,7 @@ Probado de punta a punta con pagos reales en modo prueba:
   Comprobado reenviando el mismo evento.
 - Panel completo: figuras, prints, reseñas, pedidos con tracking, textos del
   sitio y tarifas de envío.
+- Correos de confirmación y de envío, desde el dominio propio y verificados.
 - SEO: datos estructurados con precio y disponibilidad, sitemap automático,
   robots.
 - Seguridad: auditada sin credenciales. Pedidos, reservas, bitácora, umbrales
@@ -119,31 +120,22 @@ Cuidado con el póster de 24x36: va en tubo, cuesta más que $6 de enviar, y
 como el envío gratis arranca en $50 la tienda lo absorbe siempre. Es una
 decisión tomada a propósito, pero conviene verla con números reales.
 
-### 3.4 Correos transaccionales — **cuenta a nombre de Chris**
+### 3.4 Correos transaccionales — ✅ funcionando
 
-El código está escrito y probado: confirmación de pedido al cobrarse, y aviso
-de envío con número de rastreo al despacharlo. Falta activarlo.
+Cuenta de Resend a nombre del cliente, dominio `universofiguras.com`
+verificado, clave guardada en Secret Manager y funciones desplegadas.
+Comprobado con un envío real: estado `delivered`.
 
-1. Crear la cuenta en **resend.com** con un correo que controle Chris. A
-   diferencia de Stripe, aquí no hay verificación de identidad ni banco: es
-   una cuenta técnica, y por eso conviene que nazca a su nombre en vez de
-   migrarla después.
-2. Verificar el dominio `universofiguras.com` con los registros DNS que da
-   Resend (SPF y DKIM). **Sin esto los correos salen pero caen en spam**, y un
-   aviso de envío en spam genera justo el reclamo que quiere evitar.
-3. Crear una clave de API y guardarla:
-   ```bash
-   firebase functions:secrets:set RESEND_API_KEY
-   ```
-4. Redesplegar: `firebase deploy --only functions`
+- **Confirmación de pedido**: la manda el webhook cuando entra el pago.
+- **Aviso de envío con rastreo**: lo manda un disparador de Firestore cuando
+  el pedido pasa a enviado, sin importar quién lo marcó.
 
-Los correos salen desde `pedidos@universofiguras.com`, que **no necesita
-buzón** — enviar y recibir son cosas distintas. Las respuestas van al correo
-de contacto que se configure en *Panel → La tienda*; si ese campo está vacío,
-las respuestas se pierden.
+Salen desde `pedidos@universofiguras.com`, que **no necesita buzón** — enviar
+y recibir son cosas distintas. Las respuestas van a
+`lokilloshiddengems@gmail.com`, configurado en *Panel → La tienda*.
 
-Si algún día hay que cambiar de cuenta, es una clave nueva y un redespliegue.
-No tiene nada del riesgo de mudar Stripe.
+Si algún día hay que cambiar de cuenta de correo, es una clave nueva y un
+redespliegue. No tiene nada del riesgo de mudar Stripe.
 
 ### 3.5 Contenido — **lo hace Chris**
 
