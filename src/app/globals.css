@@ -1547,6 +1547,62 @@ a.stat:hover {
   color: var(--text-faint);
 }
 
+/* Barras de ventas por mes. Sin librería de gráficos: son diez divs y no
+   valen 40 kB de JavaScript en un panel que se abre desde el teléfono. */
+.barras {
+  display: grid;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.barra {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr) 90px;
+  align-items: center;
+  gap: 12px;
+}
+
+.barra__mes {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-transform: capitalize;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.barra__pista {
+  height: 22px;
+  border-radius: 6px;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.barra__valor {
+  height: 100%;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--accent) 0%, #ff9358 100%);
+}
+
+.barra__monto {
+  font-size: 13.5px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+@media (max-width: 620px) {
+  .barra {
+    grid-template-columns: 1fr auto;
+    gap: 4px 10px;
+  }
+
+  .barra__pista {
+    grid-column: 1 / -1;
+    height: 16px;
+  }
+}
+
 .stock-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

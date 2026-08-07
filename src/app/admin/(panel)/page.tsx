@@ -43,7 +43,7 @@ export default async function AdminHome() {
           <span className="stat__num">{agotadas.length}</span>
           <span className="stat__label">agotadas</span>
         </Link>
-        <div className="stat">
+        <Link href="/admin/ventas" className="stat">
           <span className="stat__num">
             {formatCents(
               orders
@@ -51,8 +51,8 @@ export default async function AdminHome() {
                 .reduce((sum, order) => sum + order.totalCents, 0)
             )}
           </span>
-          <span className="stat__label">vendido (últimos pedidos)</span>
-        </div>
+          <span className="stat__label">vendido · ver ventas →</span>
+        </Link>
       </div>
 
       {revisar.length > 0 && (
